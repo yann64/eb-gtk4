@@ -15,7 +15,7 @@ CALL g_main_context_iteration(0, 0)
 PRINT "gtk major version:"
 PRINT gtk_get_major_version()
 
-DIM app AS ANY PTR
+DIM app AS GObj PTR
 app = gtk_application_new("io.github.yann64.ebgtk4.smoketest", GTK4_APPLICATION_FLAGS_NONE)
 CALL g_object_unref(app)
 

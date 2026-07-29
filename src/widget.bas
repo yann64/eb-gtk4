@@ -17,7 +17,7 @@
 ''' The base for every wrapped GObject-derived instance (Widgets,
 ''' GtkApplication, ...).
 TYPE Obj
-    handle AS ANY PTR
+    handle AS GObj PTR
 END TYPE
 
 ''' The base for every wrapped GtkWidget - Widget-specific operations

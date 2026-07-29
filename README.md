@@ -66,13 +66,16 @@ CALL WindowSetChild(win, btn)
 CALL WindowPresent(win)
 ```
 
-Requires `ebc`/`ebpm` built from a version including the two upstream
-fixes this package's real cross-package consumption depends on: `ebpm`
-forwarding a dependency's own `Lib "name"` clauses transitively, and
-`--lib` exporting a derived (`EXTENDS`) plain-data `TYPE` - both landed in
-[yann64/ebasic](https://github.com/yann64/ebasic) alongside `@ProcName`
-(function pointers for signal callbacks), all found and fixed while
-building this package.
+Requires `ebc`/`ebpm` built from a version including several upstream
+fixes this package depends on, all found and fixed while building it (see
+[yann64/ebasic](https://github.com/yann64/ebasic)'s roadmap for each):
+`@ProcName` (function pointers for signal callbacks); `ebpm` forwarding a
+dependency's own `Lib "name"` clauses transitively; `--lib` exporting a
+derived (`EXTENDS`) `TYPE` and top-level `CONST`/`ENUM`; and `ANY PTR`
+correctly casting into a typed `PTR` (what lets this package use a single
+opaque `GObj` handle type throughout, restoring real "is this even a
+GObject-family pointer" type checking at the raw FFI layer, rather than
+`ANY PTR` everywhere accepting any pointer at all).
 
 ## Signals
 

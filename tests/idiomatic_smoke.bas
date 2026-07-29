@@ -5,7 +5,7 @@
 
 #include once "../src/lib.bas"
 
-SUB OnActivate(app AS ANY PTR, data AS ANY PTR)
+SUB OnActivate(app AS GObj PTR, data AS ANY PTR)
     PRINT "activated"
 END SUB
 

@@ -9,5 +9,5 @@ Extern "C" Lib "gio-2.0"
     ' Runs the application's main loop until it exits. `argv` is `ANY
     ' PTR` so callers can pass a literal 0 for the common "no CLI args"
     ' case (`g_application_run(app, 0, 0)`).
-    Declare Function g_application_run(ByVal application AS ANY PTR, ByVal argc AS INTEGER, ByVal argv AS ANY PTR) AS INTEGER
+    Declare Function g_application_run(ByVal application AS GObj PTR, ByVal argc AS INTEGER, ByVal argv AS ANY PTR) AS INTEGER
 End Extern

@@ -11,14 +11,14 @@
 DIM clickCount AS INTEGER
 clickCount = 0
 
-SUB OnButtonClicked(btn AS ANY PTR, data AS ANY PTR)
+SUB OnButtonClicked(btn AS GObj PTR, data AS ANY PTR)
     DIM lbl AS Label
     lbl = WrapLabel(data)
     clickCount = clickCount + 1
     CALL LabelSetText(lbl, "Clicked!")
 END SUB
 
-SUB OnActivate(rawApp AS ANY PTR, data AS ANY PTR)
+SUB OnActivate(rawApp AS GObj PTR, data AS ANY PTR)
     DIM app AS Application
     app = WrapApplication(rawApp)
 
