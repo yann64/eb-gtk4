@@ -7,6 +7,6 @@
 CONST GTK4_APPLICATION_FLAGS_NONE = 0
 
 Extern "C" Lib "gtk-4"
-    Declare Function gtk_application_new(ByVal application_id AS ZSTRING, ByVal flags AS INTEGER) AS GObj PTR
-    Declare Function gtk_application_window_new(ByVal application AS GObj PTR) AS GObj PTR
+    Declare Function gtk_application_new(ByVal application_id AS ZSTRING, ByVal flags AS INTEGER) AS ANY PTR
+    Declare Function gtk_application_window_new(ByVal application AS ANY PTR) AS ANY PTR
 End Extern

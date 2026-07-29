@@ -2,24 +2,28 @@
 '
 ' Mirrors the real C API 1:1 - internal use only. See the idiomatic
 ' wrapper layer (`src/*.bas`) for the package's real public API.
-
-''' Opaque handle for any GObject-derived instance (GtkWidget, GtkWindow,
-''' GApplication, ...). GTK/GObject only distinguish instance types at
-''' runtime via GType, so one opaque pointer type covers every object -
-''' matches how the real C API itself treats an object pointer at the ABI
-''' level; the idiomatic layer builds real eBasic-side type safety on top
-''' via composition (see `src/widget.bas`), not one opaque type per class.
-TYPE GObj
-END TYPE
+'
+' Every GObject-derived instance (GtkWidget, GtkWindow, GApplication, ...)
+' is passed as `ANY PTR` throughout this package, not a distinct opaque
+' handle TYPE - GTK/GObject only distinguish instance types at runtime via
+' GType anyway (matches how the real C API itself treats an object pointer
+' at the ABI level), and eBasic's compiler cannot yet emit the cast a
+' typed pointer target needs when the *source* is `ANY PTR` (only the
+' reverse direction - a typed pointer assigned/passed into an `ANY PTR`
+' slot - compiles, since that direction is a plain, implicit C++
+' conversion). Using `ANY PTR` uniformly sidesteps that gap entirely,
+' without losing anything: a single opaque handle TYPE would have
+' provided no extra compile-time safety over `ANY PTR` here regardless
+' (real type safety comes from the idiomatic layer's own wrapper TYPEs -
+' see `src/widget.bas`).
 
 Extern "C" Lib "gobject-2.0"
-    Declare Function g_object_ref(ByVal obj AS GObj PTR) AS GObj PTR
-    Declare Sub g_object_ref_sink(ByVal obj AS GObj PTR)
-    Declare Sub g_object_unref(ByVal obj AS GObj PTR)
+    Declare Function g_object_ref(ByVal obj AS ANY PTR) AS ANY PTR
+    Declare Sub g_object_ref_sink(ByVal obj AS ANY PTR)
+    Declare Sub g_object_unref(ByVal obj AS ANY PTR)
 
-    ' Raw signal-connect binding. `c_handler` should be a real C function
-    ' pointer (a `GCallback`) - left as `ANY PTR` for now since eBasic
-    ' cannot yet produce one from a `SUB`/`FUNCTION` (see the M0 roadmap
-    ' item to add function pointers to the compiler). Unused until then.
-    Declare Function g_signal_connect_data(ByVal instance AS GObj PTR, ByVal detailed_signal AS ZSTRING, ByVal c_handler AS ANY PTR, ByVal data AS ANY PTR, ByVal destroy_data AS ANY PTR, ByVal connect_flags AS INTEGER) AS ULONGINT
+    ' `c_handler` is a real C function pointer (a `GCallback`) - `ANY PTR`
+    ' here matches GCallback's own generic, cast-at-the-call-site
+    ' convention (see the language's own `@ProcName` docs).
+    Declare Function g_signal_connect_data(ByVal instance AS ANY PTR, ByVal detailed_signal AS ZSTRING, ByVal c_handler AS ANY PTR, ByVal data AS ANY PTR, ByVal destroy_data AS ANY PTR, ByVal connect_flags AS INTEGER) AS ULONGINT
 End Extern
