@@ -1,46 +1,50 @@
 ' Manual verification only - NOT run by `ebpm test`.
 '
-' Exercises real widget construction (gtk_window_new and friends), which
+' Exercises real widget construction through the idiomatic layer, which
 ' needs a working GTK4 display backend. Confirmed (2026-07-29, GTK 4.22.4)
 ' that gtk_window_new() segfaults even from a minimal, hand-written C
 ' program in the sandbox this package was developed in - a real GTK4
 ' display-backend/environment limitation there, not a defect in this
-' package's bindings (compile+link of every declared symbol below still
-' succeeds either way). Run this by hand on a real desktop to verify.
+' package's bindings. Run this by hand on a real desktop to verify.
+'
+' Local variable names deliberately avoid the TYPE names themselves
+' (Box/Entry/Grid/...) - eBasic identifiers are case-insensitive and share
+' one namespace between TYPEs and variables, so e.g. `DIM box AS Box`
+' would collide with the TYPE `Box` itself.
 
 #include once "../../src/lib.bas"
 
-DIM win AS GObj PTR
-win = gtk_window_new()
-CALL gtk_window_set_title(win, "smoke")
-CALL gtk_window_set_default_size(win, 320, 240)
+DIM win AS Window
+win = NewWindow()
+CALL WindowSetTitle(win, "smoke")
+CALL WindowSetDefaultSize(win, 320, 240)
 
-DIM box AS GObj PTR
-box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6)
+DIM vbox AS Box
+vbox = NewBox(GTK_ORIENTATION_VERTICAL, 6)
 
-DIM lbl AS GObj PTR
-lbl = gtk_label_new("hello")
-PRINT gtk_label_get_text(lbl)
+DIM lbl AS Label
+lbl = NewLabel("hello")
+PRINT LabelGetText(lbl)
 
-DIM btn AS GObj PTR
-btn = gtk_button_new_with_label("click me")
-PRINT gtk_button_get_label(btn)
+DIM btn AS Button
+btn = NewButton("click me")
+PRINT ButtonGetLabel(btn)
 
-DIM entry AS GObj PTR
-entry = gtk_entry_new()
-CALL gtk_editable_set_text(entry, "text")
-PRINT gtk_editable_get_text(entry)
+DIM txtEntry AS Entry
+txtEntry = NewEntry()
+CALL EntrySetText(txtEntry, "text")
+PRINT EntryGetText(txtEntry)
 
-DIM grid AS GObj PTR
-grid = gtk_grid_new()
-CALL gtk_grid_attach(grid, lbl, 0, 0, 1, 1)
+DIM grd AS Grid
+grd = NewGrid()
+CALL GridAttach(grd, lbl, 0, 0, 1, 1)
 
-CALL gtk_box_append(box, lbl)
-CALL gtk_box_append(box, entry)
-CALL gtk_box_append(box, btn)
-CALL gtk_window_set_child(win, box)
+CALL BoxAppend(vbox, lbl)
+CALL BoxAppend(vbox, txtEntry)
+CALL BoxAppend(vbox, btn)
+CALL WindowSetChild(win, vbox)
 
-CALL gtk_window_present(win)
-CALL gtk_window_destroy(win)
+CALL WindowPresent(win)
+CALL WindowDestroy(win)
 
 PRINT "widget construction ok"

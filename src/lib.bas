@@ -17,3 +17,12 @@
 #include once "raw/gtk_label.bas"
 #include once "raw/gtk_entry.bas"
 #include once "raw/gtk_application.bas"
+
+#include once "widget.bas"
+#include once "application.bas"
+#include once "window.bas"
+#include once "box.bas"
+#include once "grid.bas"
+#include once "button.bas"
+#include once "label.bas"
+#include once "entry.bas"
