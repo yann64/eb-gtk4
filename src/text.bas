@@ -226,6 +226,36 @@ SUB TextBufferClearTag(buf AS TextBuffer, tag AS ANY PTR)
     CALL FreeIter(endIter)
 END SUB
 
+''' Appends `line` plus a trailing newline to the end of a buffer's
+''' content - the natural shape for a streaming, read-only output panel
+''' (e.g. a spawned build tool's output, one line at a time), where
+''' rewriting the whole buffer's text via TextBufferSetText on every new
+''' line would be wasteful. The newline byte is built internally (eBasic's
+''' STRING has no CHR$ equivalent yet to express one directly in a
+''' literal - see this file's own NewIter/FreeIter precedent for the
+''' "allocate, use, free" pattern), not something callers need to supply.
+SUB TextBufferAppendLine(buf AS TextBuffer, line AS ZSTRING)
+    DIM nl AS ANY PTR
+    nl = g_malloc(2)
+    DIM nlBytePtr AS BYTE PTR
+    nlBytePtr = nl
+    *nlBytePtr = 10
+    *(nlBytePtr + 1) = 0
+    DIM nlZ AS ZSTRING
+    nlZ = nl
+
+    DIM endIter AS ANY PTR
+    endIter = NewIter()
+    CALL gtk_text_buffer_get_end_iter(buf.handle, endIter)
+    CALL gtk_text_buffer_insert(buf.handle, endIter, line, -1)
+    ' GTK revalidates `endIter` in place to just after the inserted text,
+    ' so it's still the right position for the newline right after.
+    CALL gtk_text_buffer_insert(buf.handle, endIter, nlZ, -1)
+    CALL FreeIter(endIter)
+
+    CALL g_free(nl)
+END SUB
+
 ''' See WrapWidget's own doc comment.
 FUNCTION WrapTextBuffer(h AS ANY PTR) AS TextBuffer
     DIM b AS TextBuffer

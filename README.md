@@ -145,6 +145,21 @@ field is already public). To highlight a language GtkSourceView doesn't
 ship built in, add your own `.lang` file's directory via
 `SourceLanguageManagerAppendSearchPath` before looking it up.
 
+## Streaming output panels
+
+```basic
+DIM outputBuf AS TextBuffer
+outputBuf = NewTextBuffer()
+CALL TextBufferAppendLine(outputBuf, "$ ebpm build")
+CALL TextBufferAppendLine(outputBuf, "   Compiling myapp (bin)")
+```
+
+`TextBufferAppendLine` appends a line plus a real trailing newline
+without rewriting the buffer's whole content (unlike `TextBufferSetText`)
+- the natural fit for a read-only panel showing a spawned tool's output
+one line at a time, e.g. reading `ebpm build`'s stdout via
+`DataInputStreamReadLineAsync` and appending each line as it arrives.
+
 ## Subprocesses
 
 ```basic

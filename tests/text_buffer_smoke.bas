@@ -29,6 +29,20 @@ CALL TextBufferPlaceCursorAt(buf, 0, 3)
 PRINT TextBufferGetCursorLine(buf)
 PRINT TextBufferGetCursorColumn(buf)
 
+DIM appendBuf AS TextBuffer
+appendBuf = NewTextBuffer()
+CALL TextBufferAppendLine(appendBuf, "first")
+CALL TextBufferAppendLine(appendBuf, "second")
+DIM rawAppended AS ANY PTR
+rawAppended = TextBufferGetText(appendBuf)
+DIM viaZstring2 AS ZSTRING
+viaZstring2 = rawAppended
+DIM appended AS STRING
+appended = viaZstring2
+CALL FreeGMallocString(rawAppended)
+PRINT appended
+CALL ObjDestroy(appendBuf)
+
 CALL ObjDestroy(buf)
 
 PRINT "text buffer smoke ok"
