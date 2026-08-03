@@ -25,6 +25,7 @@
 #include once "raw/gtk_paned.bas"
 #include once "raw/gtk_listbox.bas"
 #include once "raw/gtk_filechooser.bas"
+#include once "raw/gtk_eventkey.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -42,3 +43,5 @@
 #include once "paned.bas"
 #include once "listbox.bas"
 #include once "filechooser.bas"
+#include once "fileio.bas"
+#include once "eventkey.bas"

@@ -14,6 +14,13 @@
 
 #include once "../../src/lib.bas"
 
+FUNCTION OnKeyPressed(controller AS GObj PTR, keyval AS INTEGER, keycode AS INTEGER, state AS INTEGER, data AS ANY PTR) AS INTEGER
+    IF keyval = GDK_KEY_s AND (state AND GDK_CONTROL_MASK) <> 0 THEN
+        PRINT "ctrl+s pressed"
+    END IF
+    OnKeyPressed = 0
+END FUNCTION
+
 DIM win AS Window
 win = NewWindow()
 CALL WindowSetTitle(win, "smoke")
@@ -105,6 +112,11 @@ DIM noParent AS Window
 opener = NewFileChooserNative("Open File", noParent, GTK_FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
 CALL FileChooserNativeShow(opener)
 CALL FileChooserNativeDestroy(opener)
+
+DIM keyCtrl AS EventControllerKey
+keyCtrl = NewEventControllerKey()
+CALL ObjConnect(keyCtrl, "key-pressed", @OnKeyPressed, 0)
+CALL WidgetAddController(win, keyCtrl)
 
 CALL WindowPresent(win)
 CALL WindowDestroy(win)

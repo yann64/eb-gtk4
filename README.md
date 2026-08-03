@@ -19,11 +19,12 @@ Early development. Linux-first. Two layers:
   `SourceLanguageManager`/`SourceStyleScheme`/`SourceStyleSchemeManager`,
   `SubprocessLauncher`/`Subprocess`/`InputStream`/`OutputStream`/
   `DataInputStream`, `HeaderBar`, `Paned`, `ListBox`/`ListBoxRow`,
-  `FileChooserNative`, each `EXTENDS`-chained from a common `Obj` base)
-  plus free functions operating on them (`NewButton`, `ButtonSetLabel`,
-  `WidgetShow`, `ObjConnect` for signals, `TextBufferGetText`/`SetText`,
-  `SourceBufferSetLanguage`, `SubprocessLauncherSpawnv`, `ListBoxAppend`,
-  ...).
+  `FileChooserNative`, `EventControllerKey`, each `EXTENDS`-chained from a
+  common `Obj` base) plus free functions operating on them (`NewButton`,
+  `ButtonSetLabel`, `WidgetShow`, `ObjConnect` for signals,
+  `TextBufferGetText`/`SetText`, `SourceBufferSetLanguage`,
+  `SubprocessLauncherSpawnv`, `ListBoxAppend`, `ReadFileContents`/
+  `WriteFileContents`, ...).
 
 **Free functions, not methods** - an eBasic `TYPE`'s own methods aren't
 exported across an `ebpm --lib` package boundary yet (only top-level
@@ -200,7 +201,9 @@ CALL WindowSetTitlebar(win, bar)
 DIM sidebar AS ListBox
 sidebar = NewListBox()
 CALL ListBoxSetActivateOnSingleClick(sidebar, 1)
-CALL ListBoxAppend(sidebar, NewLabel("main.bas"))
+DIM fileLabel AS Label
+fileLabel = NewLabel("main.bas")
+CALL ListBoxAppend(sidebar, fileLabel)
 
 DIM split AS Paned
 split = NewPaned(GTK_ORIENTATION_HORIZONTAL)
@@ -219,12 +222,22 @@ blocking "show and get the result" call:
 
 ```basic
 SUB OnResponse(dialog AS GObj PTR, responseId AS INTEGER, data AS ANY PTR)
+    DIM fc AS FileChooserNative
+    fc = WrapFileChooserNative(dialog)
+
     IF responseId = GTK_RESPONSE_ACCEPT THEN
-        DIM fc AS FileChooserNative
-        fc = WrapFileChooserNative(dialog)
-        PRINT FileChooserGetFilePath(fc)
+        DIM rawPath AS ANY PTR
+        rawPath = FileChooserGetFilePath(fc)
+        IF rawPath <> 0 THEN
+            DIM viaZstring AS ZSTRING
+            viaZstring = rawPath
+            DIM path AS STRING
+            path = viaZstring
+            CALL FreeGMallocString(rawPath)
+            PRINT path
+        END IF
     END IF
-    CALL FileChooserNativeDestroy(WrapFileChooserNative(dialog))
+    CALL FileChooserNativeDestroy(fc)
 END SUB
 
 DIM opener AS FileChooserNative
