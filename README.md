@@ -246,6 +246,27 @@ CALL ObjConnect(opener, "response", @OnResponse, 0)
 CALL FileChooserNativeShow(opener)
 ```
 
+## Diagnostics highlighting + hover tooltips
+
+```basic
+DIM errorTag AS ANY PTR
+errorTag = TextBufferCreateUnderlineTag(buf, "lsp-error", PANGO_UNDERLINE_ERROR)
+CALL TextBufferApplyTagRange(buf, errorTag, 0, 4, 0, 5)   ' underline "x" on line 0
+CALL TextBufferClearTag(buf, errorTag)                     ' clear before re-applying
+
+CALL WidgetSetTooltipText(myWidget, "the resolved type/signature")
+```
+
+GTK's real property-setting entry points for a `GtkTextTag`'s appearance
+(`gtk_text_buffer_create_tag`, `g_object_set`) are variadic C functions -
+eBasic has no variadic-call support, so this package instead looks up the
+target property's `GType` at runtime (`g_type_from_name`), builds a
+`GValue` by hand (`g_value_init`/`g_value_set_enum`/`g_value_unset`, a
+heap-allocated opaque blob exactly like `GtkTextIter`), and sets it via
+the non-variadic `g_object_set_property`. `gtk_widget_set_tooltip_text`
+needed none of this - it's one of the few style-adjacent properties GTK
+also exposes as a dedicated, ordinary function.
+
 ## Layout
 
 - `src/raw/` - the raw FFI layer (see above).

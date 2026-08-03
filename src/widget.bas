@@ -73,6 +73,12 @@ SUB WidgetSetSizeRequest(w AS Widget, width AS INTEGER, height AS INTEGER)
     CALL gtk_widget_set_size_request(w.handle, width, height)
 END SUB
 
+''' Sets (or clears, with "") a plain-text tooltip shown on hover -
+''' the natural fit for e.g. an LSP client rendering hover text.
+SUB WidgetSetTooltipText(w AS Widget, text AS ZSTRING)
+    CALL gtk_widget_set_tooltip_text(w.handle, text)
+END SUB
+
 ''' Wraps an existing, already-owned raw handle (e.g. the instance/data
 ''' pointer a signal handler receives) into a value of this package's
 ''' own Widget TYPE - does NOT take a new reference (unlike a New*

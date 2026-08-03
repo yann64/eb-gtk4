@@ -198,6 +198,25 @@ FUNCTION InputStreamReadAllFinish(stream AS InputStream, res AS ANY PTR, BYREF b
     InputStreamReadAllFinish = ok
 END FUNCTION
 
+''' Blocking read of exactly `count` bytes into a caller-allocated
+''' `buffer` (e.g. `g_malloc(count)`) - the sync counterpart of
+''' InputStreamReadAllAsync/Finish, for a short, in-process-fast round
+''' trip (see NewDataInputStream's own doc comment on when blocking is
+''' acceptable). `bytesRead` receives how many bytes actually landed (a
+''' short read before EOF is still "successful" - check it); the return
+''' value is whether the read itself succeeded.
+FUNCTION InputStreamReadAll(stream AS InputStream, buffer AS ANY PTR, count AS INTEGER, BYREF bytesRead AS INTEGER) AS INTEGER
+    DIM countSlot AS ANY PTR
+    countSlot = g_malloc(8)
+    DIM ok AS INTEGER
+    ok = g_input_stream_read_all(stream.handle, buffer, count, countSlot, 0, 0)
+    DIM countPtr AS ULONGINT PTR
+    countPtr = countSlot
+    bytesRead = *countPtr
+    CALL g_free(countSlot)
+    InputStreamReadAll = ok
+END FUNCTION
+
 ''' Closes an input stream (a subprocess's stdout/stderr pipe, or a
 ''' DataInputStream wrapping one).
 SUB InputStreamClose(stream AS InputStream)

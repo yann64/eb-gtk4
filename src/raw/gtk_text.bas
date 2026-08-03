@@ -61,6 +61,15 @@ Extern "C" Lib "gtk-4"
     Declare Sub gtk_text_buffer_undo(ByVal buffer AS GObj PTR)
     Declare Sub gtk_text_buffer_redo(ByVal buffer AS GObj PTR)
 
+    ' GtkTextTag/GtkTextTagTable - see text.bas's TextBufferCreateUnderlineTag
+    ' for why properties are set via GValue/g_object_set_property (raw/
+    ' gobject.bas) rather than the real, variadic gtk_text_buffer_create_tag.
+    Declare Function gtk_text_tag_new(ByVal name AS ZSTRING) AS GObj PTR
+    Declare Function gtk_text_buffer_get_tag_table(ByVal buffer AS GObj PTR) AS GObj PTR
+    Declare Function gtk_text_tag_table_add(ByVal table AS GObj PTR, ByVal tag AS GObj PTR) AS INTEGER
+    Declare Sub gtk_text_buffer_apply_tag(ByVal buffer AS GObj PTR, ByVal tag AS GObj PTR, ByVal start_iter AS ANY PTR, ByVal end_iter AS ANY PTR)
+    Declare Sub gtk_text_buffer_remove_tag(ByVal buffer AS GObj PTR, ByVal tag AS GObj PTR, ByVal start_iter AS ANY PTR, ByVal end_iter AS ANY PTR)
+
     Declare Function gtk_text_iter_get_line(ByVal iter AS ANY PTR) AS INTEGER
     Declare Function gtk_text_iter_get_line_offset(ByVal iter AS ANY PTR) AS INTEGER
     Declare Function gtk_text_iter_get_offset(ByVal iter AS ANY PTR) AS INTEGER

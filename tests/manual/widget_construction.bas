@@ -32,6 +32,7 @@ vbox = NewBox(GTK_ORIENTATION_VERTICAL, 6)
 DIM lbl AS Label
 lbl = NewLabel("hello")
 PRINT LabelGetText(lbl)
+CALL WidgetSetTooltipText(lbl, "a hover tooltip")
 
 DIM btn AS Button
 btn = NewButton("click me")

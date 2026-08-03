@@ -2,6 +2,10 @@
 
 Extern "C" Lib "glib-2.0"
     Declare Function g_malloc(ByVal n_bytes AS ULONGINT) AS ANY PTR
+    ' Zero-initialized allocation - needed for GValue (G_VALUE_INIT's real
+    ' C macro is a zeroed-struct literal; g_value_init on non-zeroed
+    ' memory is undefined behavior), see raw/gobject.bas.
+    Declare Function g_malloc0(ByVal n_bytes AS ULONGINT) AS ANY PTR
     Declare Sub g_free(ByVal mem AS ANY PTR)
 
     ' Pumps the default main context once. `may_block` (0/-1) mirrors

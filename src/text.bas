@@ -162,6 +162,70 @@ SUB TextBufferSelectRange(buf AS TextBuffer, startLine AS INTEGER, startCol AS I
     CALL FreeIter(endIter)
 END SUB
 
+' Pango underline styles (real pango enum, docs.gtk.org) - PANGO_UNDERLINE_ERROR
+' renders GTK's own recognizable red squiggly underline, the natural
+' choice for LSP error diagnostics; the others are exposed for completeness.
+CONST PANGO_UNDERLINE_NONE = 0
+CONST PANGO_UNDERLINE_SINGLE = 1
+CONST PANGO_UNDERLINE_DOUBLE = 2
+CONST PANGO_UNDERLINE_LOW = 3
+CONST PANGO_UNDERLINE_ERROR = 4
+
+''' Creates a new tag styled with the given Pango underline style (e.g.
+''' PANGO_UNDERLINE_ERROR for a diagnostics squiggle) and registers it in
+''' `buf`'s own tag table. Returns the raw GtkTextTag handle - pass it to
+''' TextBufferApplyTagRange/TextBufferClearTag. See raw/gobject.bas's own
+''' doc comment on g_type_from_name for why this goes through GValue/
+''' g_object_set_property rather than the real, variadic
+''' gtk_text_buffer_create_tag (eBasic has no variadic-call support).
+FUNCTION TextBufferCreateUnderlineTag(buf AS TextBuffer, name AS ZSTRING, style AS INTEGER) AS ANY PTR
+    DIM tag AS ANY PTR
+    tag = gtk_text_tag_new(name)
+
+    DIM gvalue AS ANY PTR
+    gvalue = g_malloc0(GLIB_GVALUE_SIZE)
+    DIM underlineType AS ULONGINT
+    underlineType = g_type_from_name("PangoUnderline")
+    CALL g_value_init(gvalue, underlineType)
+    CALL g_value_set_enum(gvalue, style)
+    CALL g_object_set_property(tag, "underline", gvalue)
+    CALL g_value_unset(gvalue)
+    CALL g_free(gvalue)
+
+    DIM table AS ANY PTR
+    table = gtk_text_buffer_get_tag_table(buf.handle)
+    CALL gtk_text_tag_table_add(table, tag)
+
+    TextBufferCreateUnderlineTag = tag
+END FUNCTION
+
+''' Applies a tag (from TextBufferCreateUnderlineTag) to a line/column range.
+SUB TextBufferApplyTagRange(buf AS TextBuffer, tag AS ANY PTR, startLine AS INTEGER, startCol AS INTEGER, endLine AS INTEGER, endCol AS INTEGER)
+    DIM startIter AS ANY PTR
+    DIM endIter AS ANY PTR
+    startIter = NewIter()
+    endIter = NewIter()
+    CALL gtk_text_buffer_get_iter_at_line_offset(buf.handle, startIter, startLine, startCol)
+    CALL gtk_text_buffer_get_iter_at_line_offset(buf.handle, endIter, endLine, endCol)
+    CALL gtk_text_buffer_apply_tag(buf.handle, tag, startIter, endIter)
+    CALL FreeIter(startIter)
+    CALL FreeIter(endIter)
+END SUB
+
+''' Removes a tag from the buffer's entire content - e.g. to clear all
+''' previous diagnostics squiggles before re-applying a fresh set.
+SUB TextBufferClearTag(buf AS TextBuffer, tag AS ANY PTR)
+    DIM startIter AS ANY PTR
+    DIM endIter AS ANY PTR
+    startIter = NewIter()
+    endIter = NewIter()
+    CALL gtk_text_buffer_get_start_iter(buf.handle, startIter)
+    CALL gtk_text_buffer_get_end_iter(buf.handle, endIter)
+    CALL gtk_text_buffer_remove_tag(buf.handle, tag, startIter, endIter)
+    CALL FreeIter(startIter)
+    CALL FreeIter(endIter)
+END SUB
+
 ''' See WrapWidget's own doc comment.
 FUNCTION WrapTextBuffer(h AS ANY PTR) AS TextBuffer
     DIM b AS TextBuffer

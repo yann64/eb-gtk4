@@ -72,6 +72,12 @@ Extern "C" Lib "gio-2.0"
     ' `bytes_read` is a caller-allocated ULONGINT-sized out-slot (see
     ' idiomatic layer) - `error` is always 0/NULL.
     Declare Function g_input_stream_read_all_finish(ByVal stream AS GObj PTR, ByVal res AS ANY PTR, ByVal bytes_read AS ANY PTR, ByVal error AS ANY PTR) AS INTEGER
+    ' The blocking counterpart of read_all_async/finish - same "fine for a
+    ' short, in-process-fast round trip" reasoning as
+    ' g_data_input_stream_read_line above, used for ebasic_lsp's
+    ' Content-Length-framed JSON body (a fixed byte count read after the
+    ' header line, not itself line-terminated).
+    Declare Function g_input_stream_read_all(ByVal stream AS GObj PTR, ByVal buffer AS ANY PTR, ByVal count AS ULONGINT, ByVal bytes_read AS ANY PTR, ByVal cancellable AS ANY PTR, ByVal error AS ANY PTR) AS INTEGER
 
     Declare Function g_output_stream_write_all(ByVal stream AS GObj PTR, ByVal buffer AS ZSTRING, ByVal count AS ULONGINT, ByVal bytes_written AS ANY PTR, ByVal cancellable AS ANY PTR, ByVal error AS ANY PTR) AS INTEGER
     Declare Function g_output_stream_close(ByVal stream AS GObj PTR, ByVal cancellable AS ANY PTR, ByVal error AS ANY PTR) AS INTEGER
