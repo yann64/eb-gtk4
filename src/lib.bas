@@ -20,6 +20,7 @@
 #include once "raw/gtk_text.bas"
 #include once "raw/gtk_scrolled_window.bas"
 #include once "raw/gtksourceview.bas"
+#include once "raw/gsubprocess.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -32,3 +33,4 @@
 #include once "text.bas"
 #include once "scrolled_window.bas"
 #include once "sourceview.bas"
+#include once "subprocess.bas"

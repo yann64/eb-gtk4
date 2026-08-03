@@ -17,10 +17,11 @@ Early development. Linux-first. Two layers:
   subclasses - `EXTENDS TextView`/`TextBuffer`, so every `TextBuffer`/
   `TextView` function already works on them), `SourceLanguage`/
   `SourceLanguageManager`/`SourceStyleScheme`/`SourceStyleSchemeManager`,
-  each `EXTENDS`-chained from a common `Obj` base) plus free functions
-  operating on them (`NewButton`, `ButtonSetLabel`, `WidgetShow`,
-  `ObjConnect` for signals, `TextBufferGetText`/`SetText`,
-  `SourceBufferSetLanguage`, ...).
+  `SubprocessLauncher`/`Subprocess`/`InputStream`/`OutputStream`/
+  `DataInputStream`, each `EXTENDS`-chained from a common `Obj` base) plus
+  free functions operating on them (`NewButton`, `ButtonSetLabel`,
+  `WidgetShow`, `ObjConnect` for signals, `TextBufferGetText`/`SetText`,
+  `SourceBufferSetLanguage`, `SubprocessLauncherSpawnv`, ...).
 
 **Free functions, not methods** - an eBasic `TYPE`'s own methods aren't
 exported across an `ebpm --lib` package boundary yet (only top-level
@@ -82,11 +83,14 @@ derived (`EXTENDS`) `TYPE` and top-level `CONST`/`ENUM`; `ANY PTR`
 correctly casting into a typed `PTR` (what lets this package use a single
 opaque `GObj` handle type throughout, restoring real "is this even a
 GObject-family pointer" type checking at the raw FFI layer, rather than
-`ANY PTR` everywhere accepting any pointer at all); and `ANY PTR` bridging
-to `ZSTRING` (what lets `TextBufferGetText` safely free
+`ANY PTR` everywhere accepting any pointer at all); `ANY PTR` bridging to
+`ZSTRING` (what lets `TextBufferGetText` safely free
 `gtk_text_buffer_get_text`'s `g_malloc`'d return without leaking it - the
 first binding here that gets back a string it must free itself, rather
-than a borrowed one).
+than a borrowed one); and a real dangling-pointer bug where a string
+literal assigned to a `ZSTRING` variable/array element outliving its own
+statement (e.g. `DIM argv(n) AS ZSTRING` built up across several
+statements for `GSubprocess`) used to silently corrupt.
 
 ## Signals
 
@@ -127,6 +131,41 @@ directly (this language has no OOP encapsulation yet, so every `TYPE`
 field is already public). To highlight a language GtkSourceView doesn't
 ship built in, add your own `.lang` file's directory via
 `SourceLanguageManagerAppendSearchPath` before looking it up.
+
+## Subprocesses
+
+```basic
+DIM launcher AS SubprocessLauncher
+launcher = NewSubprocessLauncher(G_SUBPROCESS_FLAGS_STDOUT_PIPE)
+
+DIM argv(1) AS ZSTRING
+argv(0) = "echo"
+argv(1) = "hello"
+' the last slot stays unassigned - a real, correctly NUL-terminated
+' char** falls out for free (see raw/gsubprocess.bas's own doc comment)
+
+DIM sp AS Subprocess
+sp = SubprocessLauncherSpawnv(launcher, @argv(0))
+
+DIM lineReader AS DataInputStream
+lineReader = NewDataInputStream(SubprocessGetStdoutPipe(sp))
+
+DIM gotLine AS INTEGER
+DIM line AS STRING
+line = DataInputStreamReadLine(lineReader, gotLine)   ' blocking - fine for a short-lived command
+PRINT line
+
+CALL SubprocessWait(sp)
+PRINT SubprocessGetExitStatus(sp)
+```
+
+The one subprocess primitive this package exposes - real, portable
+(Linux/macOS/Windows), GLib-main-loop-integrated process spawning via
+`GSubprocess`, reused identically whether the child is a short-lived
+one-shot command (`ebpm`, `git` - blocking reads via
+`DataInputStreamReadLine`/`InputStreamReadAllAsync`+sync-style usage are
+fine) or a long-lived server process (an LSP server - use the `*Async`/
+`*Finish` pairs instead, so the GTK main loop isn't frozen waiting on it).
 
 ## Layout
 
