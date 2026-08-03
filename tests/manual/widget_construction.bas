@@ -61,11 +61,42 @@ DIM scroller AS ScrolledWindow
 scroller = NewScrolledWindow()
 CALL ScrolledWindowSetChild(scroller, sourceTv)
 
+DIM bar AS HeaderBar
+bar = NewHeaderBar()
+CALL HeaderBarSetTitle(bar, "eb-gtk4 smoke")
+CALL HeaderBarSetShowTitleButtons(bar, 1)
+CALL HeaderBarPackStart(bar, btn)
+CALL WindowSetTitlebar(win, bar)
+
+DIM sidebar AS ListBox
+sidebar = NewListBox()
+CALL ListBoxSetActivateOnSingleClick(sidebar, 1)
+DIM fileOne AS Label
+fileOne = NewLabel("main.bas")
+CALL ListBoxAppend(sidebar, fileOne)
+DIM fileTwo AS Label
+fileTwo = NewLabel("lib.bas")
+CALL ListBoxAppend(sidebar, fileTwo)
+DIM secondRow AS ListBoxRow
+secondRow = ListBoxGetRowAtIndex(sidebar, 1)
+PRINT ListBoxRowGetIndex(secondRow)
+
+DIM split AS Paned
+split = NewPaned(GTK_ORIENTATION_HORIZONTAL)
+CALL PanedSetStartChild(split, sidebar)
+CALL PanedSetEndChild(split, scroller)
+CALL PanedSetPosition(split, 160)
+
 CALL BoxAppend(vbox, lbl)
 CALL BoxAppend(vbox, txtEntry)
-CALL BoxAppend(vbox, btn)
-CALL BoxAppend(vbox, scroller)
+CALL BoxAppend(vbox, split)
 CALL WindowSetChild(win, vbox)
+
+DIM opener AS FileChooserNative
+DIM noParent AS Window
+opener = NewFileChooserNative("Open File", noParent, GTK_FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+CALL FileChooserNativeShow(opener)
+CALL FileChooserNativeDestroy(opener)
 
 CALL WindowPresent(win)
 CALL WindowDestroy(win)

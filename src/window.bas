@@ -41,6 +41,13 @@ SUB WindowSetChild(w AS Window, child AS Widget)
     CALL gtk_window_set_child(w.handle, child.handle)
 END SUB
 
+''' Sets a window's title bar to a custom widget (typically a HeaderBar -
+''' any Widget works here, matching gtk_window_set_titlebar's own real
+''' signature).
+SUB WindowSetTitlebar(w AS Window, titlebar AS Widget)
+    CALL gtk_window_set_titlebar(w.handle, titlebar.handle)
+END SUB
+
 ''' Shows and raises a window.
 SUB WindowPresent(w AS Window)
     CALL gtk_window_present(w.handle)

@@ -18,10 +18,12 @@ Early development. Linux-first. Two layers:
   `TextView` function already works on them), `SourceLanguage`/
   `SourceLanguageManager`/`SourceStyleScheme`/`SourceStyleSchemeManager`,
   `SubprocessLauncher`/`Subprocess`/`InputStream`/`OutputStream`/
-  `DataInputStream`, each `EXTENDS`-chained from a common `Obj` base) plus
-  free functions operating on them (`NewButton`, `ButtonSetLabel`,
+  `DataInputStream`, `HeaderBar`, `Paned`, `ListBox`/`ListBoxRow`,
+  `FileChooserNative`, each `EXTENDS`-chained from a common `Obj` base)
+  plus free functions operating on them (`NewButton`, `ButtonSetLabel`,
   `WidgetShow`, `ObjConnect` for signals, `TextBufferGetText`/`SetText`,
-  `SourceBufferSetLanguage`, `SubprocessLauncherSpawnv`, ...).
+  `SourceBufferSetLanguage`, `SubprocessLauncherSpawnv`, `ListBoxAppend`,
+  ...).
 
 **Free functions, not methods** - an eBasic `TYPE`'s own methods aren't
 exported across an `ebpm --lib` package boundary yet (only top-level
@@ -166,6 +168,50 @@ one-shot command (`ebpm`, `git` - blocking reads via
 `DataInputStreamReadLine`/`InputStreamReadAllAsync`+sync-style usage are
 fine) or a long-lived server process (an LSP server - use the `*Async`/
 `*Finish` pairs instead, so the GTK main loop isn't frozen waiting on it).
+
+## App shell widgets
+
+```basic
+DIM bar AS HeaderBar
+bar = NewHeaderBar()
+CALL HeaderBarSetTitle(bar, "My Editor")
+CALL WindowSetTitlebar(win, bar)
+
+DIM sidebar AS ListBox
+sidebar = NewListBox()
+CALL ListBoxSetActivateOnSingleClick(sidebar, 1)
+CALL ListBoxAppend(sidebar, NewLabel("main.bas"))
+
+DIM split AS Paned
+split = NewPaned(GTK_ORIENTATION_HORIZONTAL)
+CALL PanedSetStartChild(split, sidebar)
+CALL PanedSetEndChild(split, scroller)   ' e.g. a ScrolledWindow around a SourceView
+```
+
+`ListBox` (not the newer, model+factory-based `GtkListView`) backs this
+package's list needs - a plain, real widget per row (`ListBoxAppend`),
+with none of `GListModel`/`GtkListItemFactory`'s virtual-function wiring;
+connect `"row-activated"` (via `ObjConnect`) to react to a click.
+
+`FileChooserNative` (not the newer GTK 4.10+ `GtkFileDialog`, for broader
+GTK4 version compatibility) is inherently asynchronous - there's no
+blocking "show and get the result" call:
+
+```basic
+SUB OnResponse(dialog AS GObj PTR, responseId AS INTEGER, data AS ANY PTR)
+    IF responseId = GTK_RESPONSE_ACCEPT THEN
+        DIM fc AS FileChooserNative
+        fc = WrapFileChooserNative(dialog)
+        PRINT FileChooserGetFilePath(fc)
+    END IF
+    CALL FileChooserNativeDestroy(WrapFileChooserNative(dialog))
+END SUB
+
+DIM opener AS FileChooserNative
+opener = NewFileChooserNative("Open File", win, GTK_FILE_CHOOSER_ACTION_OPEN, "_Open", "_Cancel")
+CALL ObjConnect(opener, "response", @OnResponse, 0)
+CALL FileChooserNativeShow(opener)
+```
 
 ## Layout
 
