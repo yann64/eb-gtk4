@@ -26,12 +26,17 @@ DIM lineReader AS DataInputStream
 lineReader = NewDataInputStream(outPipe)
 
 DIM gotLine AS INTEGER
-DIM line AS STRING
-line = DataInputStreamReadLine(lineReader, gotLine)
+DIM rawLine AS ANY PTR
+rawLine = DataInputStreamReadLine(lineReader, gotLine)
 PRINT gotLine
+DIM viaZstring AS ZSTRING
+viaZstring = rawLine
+DIM line AS STRING
+line = viaZstring
+CALL FreeGMallocString(rawLine)
 PRINT line
 
-line = DataInputStreamReadLine(lineReader, gotLine)
+rawLine = DataInputStreamReadLine(lineReader, gotLine)
 PRINT gotLine
 
 CALL SubprocessWait(sp)

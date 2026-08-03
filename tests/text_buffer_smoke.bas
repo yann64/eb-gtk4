@@ -11,7 +11,14 @@ DIM buf AS TextBuffer
 buf = NewTextBuffer()
 
 CALL TextBufferSetText(buf, "hello world")
-PRINT TextBufferGetText(buf)
+DIM rawText AS ANY PTR
+rawText = TextBufferGetText(buf)
+DIM viaZstring AS ZSTRING
+viaZstring = rawText
+DIM text AS STRING
+text = viaZstring
+CALL FreeGMallocString(rawText)
+PRINT text
 
 CALL TextBufferSetModified(buf, 0)
 PRINT TextBufferGetModified(buf)

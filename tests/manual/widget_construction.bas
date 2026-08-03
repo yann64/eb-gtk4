@@ -48,7 +48,15 @@ DIM srcBuf AS SourceBuffer
 srcBuf = NewSourceBufferWithLanguage(py)
 CALL SourceBufferSetHighlightSyntax(srcBuf, 1)
 CALL TextBufferSetText(srcBuf, "print(""hello"")")
-PRINT TextBufferGetText(srcBuf)
+
+DIM rawText AS ANY PTR
+rawText = TextBufferGetText(srcBuf)
+DIM viaZstring AS ZSTRING
+viaZstring = rawText
+DIM srcText AS STRING
+srcText = viaZstring
+CALL FreeGMallocString(rawText)
+PRINT srcText
 
 DIM sourceTv AS SourceView
 sourceTv = NewSourceViewWithBuffer(srcBuf)

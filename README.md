@@ -34,7 +34,17 @@ API is `CALL ButtonSetLabel(myButton, "text")`, not
 **`ZSTRING`, not `STRING`, for text** - a `STRING`-returning top-level
 function isn't exported across the same boundary yet either, so every
 text-carrying parameter/return in this package's public API uses
-`ZSTRING` (a plain `const char*`) instead.
+`ZSTRING` (a plain `const char*`) instead. This applies even when a
+function only *internally* builds a `STRING` before returning it - the
+function's own declared return *type* is what's excluded, regardless of
+how safely it's computed inside. A real bug from exactly this
+(`TextBufferGetText`/`FileChooserGetFilePath`/`DataInputStreamReadLine`/
+`Finish` were all originally declared `AS STRING`, silently unusable by
+any external consumer - found the moment a real downstream package
+(`ebasic-editor`) tried to call one) is now fixed: each returns the raw
+`ANY PTR` allocation instead, freed via the newly exported
+`FreeGMallocString` once the caller has read it through eBasic's own
+ANY-PTR-as-`ZSTRING` bridge.
 
 ## Building
 
@@ -140,21 +150,31 @@ ship built in, add your own `.lang` file's directory via
 DIM launcher AS SubprocessLauncher
 launcher = NewSubprocessLauncher(G_SUBPROCESS_FLAGS_STDOUT_PIPE)
 
-DIM argv(1) AS ZSTRING
+DIM argv(2) AS ZSTRING
 argv(0) = "echo"
 argv(1) = "hello"
-' the last slot stays unassigned - a real, correctly NUL-terminated
-' char** falls out for free (see raw/gsubprocess.bas's own doc comment)
+' argv(2) stays unassigned - a real, correctly NUL-terminated char**
+' falls out for free (see raw/gsubprocess.bas's own doc comment). Get
+' this element count wrong (e.g. DIM argv(1), leaving no unassigned
+' slot at all) and the missing NUL terminator is a real, silent
+' out-of-bounds read - confirmed by direct reproduction (a segfault).
 
 DIM sp AS Subprocess
 sp = SubprocessLauncherSpawnv(launcher, @argv(0))
 
+DIM outPipe AS InputStream
+outPipe = SubprocessGetStdoutPipe(sp)
 DIM lineReader AS DataInputStream
-lineReader = NewDataInputStream(SubprocessGetStdoutPipe(sp))
+lineReader = NewDataInputStream(outPipe)
 
 DIM gotLine AS INTEGER
+DIM rawLine AS ANY PTR
+rawLine = DataInputStreamReadLine(lineReader, gotLine)   ' blocking - fine for a short-lived command
+DIM viaZstring AS ZSTRING
+viaZstring = rawLine
 DIM line AS STRING
-line = DataInputStreamReadLine(lineReader, gotLine)   ' blocking - fine for a short-lived command
+line = viaZstring
+CALL FreeGMallocString(rawLine)
 PRINT line
 
 CALL SubprocessWait(sp)

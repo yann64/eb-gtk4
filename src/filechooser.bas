@@ -5,7 +5,6 @@
 
 #include once "widget.bas"
 #include once "window.bas"
-#include once "raw/glib.bas"
 #include once "raw/gtk_filechooser.bas"
 
 ''' A native (platform-provided, e.g. a real GTK/portal dialog under
@@ -47,27 +46,19 @@ SUB FileChooserNativeDestroy(fc AS FileChooserNative)
     CALL gtk_native_dialog_destroy(fc.handle)
 END SUB
 
-''' The chosen file's real filesystem path - only meaningful when called
-''' from inside a "response" handler that received GTK_RESPONSE_ACCEPT;
-''' returns "" if no file was chosen.
-FUNCTION FileChooserGetFilePath(fc AS FileChooserNative) AS STRING
+''' The chosen file's real filesystem path, as a newly `g_malloc`'d string
+''' the caller must free via FreeGMallocString (see TextBufferGetText's own
+''' doc comment on why - STRING itself can't cross this package's `--lib`
+''' boundary) - only meaningful when called from inside a "response"
+''' handler that received GTK_RESPONSE_ACCEPT. Returns 0 if no file was
+''' chosen (nothing to free in that case).
+FUNCTION FileChooserGetFilePath(fc AS FileChooserNative) AS ANY PTR
     DIM file AS ANY PTR
     file = gtk_file_chooser_get_file(fc.handle)
     IF file = 0 THEN
-        FileChooserGetFilePath = ""
+        FileChooserGetFilePath = 0
     ELSE
-        DIM rawPtr AS ANY PTR
-        rawPtr = g_file_get_path(file)
-        IF rawPtr = 0 THEN
-            FileChooserGetFilePath = ""
-        ELSE
-            DIM viaZstring AS ZSTRING
-            viaZstring = rawPtr
-            DIM result AS STRING
-            result = viaZstring
-            CALL g_free(rawPtr)
-            FileChooserGetFilePath = result
-        END IF
+        FileChooserGetFilePath = g_file_get_path(file)
     END IF
 END FUNCTION
 

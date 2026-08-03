@@ -148,43 +148,25 @@ SUB DataInputStreamReadLineAsync(stream AS DataInputStream, callback AS ANY PTR,
 END SUB
 
 ''' Completes an async line read - sets `gotLine` to 0 on EOF/error (with
-''' `""` returned) or 1 with the line's real text (never including its own
-''' trailing newline).
-FUNCTION DataInputStreamReadLineFinish(stream AS DataInputStream, res AS ANY PTR, BYREF gotLine AS INTEGER) AS STRING
+''' 0 returned - nothing to free) or 1 with a newly `g_malloc`'d string
+''' (never including its own trailing newline) the caller must free via
+''' FreeGMallocString (see TextBufferGetText's own doc comment on why -
+''' STRING itself can't cross this package's `--lib` boundary).
+FUNCTION DataInputStreamReadLineFinish(stream AS DataInputStream, res AS ANY PTR, BYREF gotLine AS INTEGER) AS ANY PTR
     DIM rawPtr AS ANY PTR
     rawPtr = g_data_input_stream_read_line_finish(stream.handle, res, 0, 0)
-    IF rawPtr = 0 THEN
-        gotLine = 0
-        DataInputStreamReadLineFinish = ""
-    ELSE
-        gotLine = 1
-        DIM viaZstring AS ZSTRING
-        viaZstring = rawPtr
-        DIM result AS STRING
-        result = viaZstring
-        CALL g_free(rawPtr)
-        DataInputStreamReadLineFinish = result
-    END IF
+    gotLine = (rawPtr <> 0)
+    DataInputStreamReadLineFinish = rawPtr
 END FUNCTION
 
 ''' The blocking counterpart of DataInputStreamReadLineAsync/Finish - see
 ''' raw/gsubprocess.bas's own doc comment on when blocking is acceptable.
 ''' Same `gotLine`/return convention as DataInputStreamReadLineFinish.
-FUNCTION DataInputStreamReadLine(stream AS DataInputStream, BYREF gotLine AS INTEGER) AS STRING
+FUNCTION DataInputStreamReadLine(stream AS DataInputStream, BYREF gotLine AS INTEGER) AS ANY PTR
     DIM rawPtr AS ANY PTR
     rawPtr = g_data_input_stream_read_line(stream.handle, 0, 0, 0)
-    IF rawPtr = 0 THEN
-        gotLine = 0
-        DataInputStreamReadLine = ""
-    ELSE
-        gotLine = 1
-        DIM viaZstring AS ZSTRING
-        viaZstring = rawPtr
-        DIM result AS STRING
-        result = viaZstring
-        CALL g_free(rawPtr)
-        DataInputStreamReadLine = result
-    END IF
+    gotLine = (rawPtr <> 0)
+    DataInputStreamReadLine = rawPtr
 END FUNCTION
 
 ''' Starts an async read of exactly `count` bytes into a caller-allocated

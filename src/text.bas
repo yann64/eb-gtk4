@@ -47,8 +47,21 @@ SUB TextBufferSetText(buf AS TextBuffer, text AS ZSTRING)
     CALL gtk_text_buffer_set_text(buf.handle, text, -1)
 END SUB
 
-''' Reads a buffer's entire content.
-FUNCTION TextBufferGetText(buf AS TextBuffer) AS STRING
+''' Reads a buffer's entire content as a newly `g_malloc`'d string the
+''' caller must free via FreeGMallocString once done - **not** exported as
+''' `STRING`: no top-level `STRING`-returning function can cross this
+''' package's own `--lib` boundary yet (confirmed directly - the generated
+''' interface silently drops any that try, per its own "not exported: uses
+''' STRING" comment), so every text-returning function in this package's
+''' public API hands back the raw allocation instead, same as any
+''' `ZSTRING`-returning-but-owned C API would. Read it via eBasic's own
+''' ANY-PTR-as-ZSTRING bridge yourself (that part needs nothing from this
+''' package, just the language's own bridging feature), then free it:
+''' `DIM raw AS ANY PTR : raw = TextBufferGetText(buf)`
+''' `DIM z AS ZSTRING : z = raw`
+''' `DIM s AS STRING : s = z`
+''' `CALL FreeGMallocString(raw)`
+FUNCTION TextBufferGetText(buf AS TextBuffer) AS ANY PTR
     DIM startIter AS ANY PTR
     DIM endIter AS ANY PTR
     startIter = NewIter()
@@ -56,24 +69,24 @@ FUNCTION TextBufferGetText(buf AS TextBuffer) AS STRING
     CALL gtk_text_buffer_get_start_iter(buf.handle, startIter)
     CALL gtk_text_buffer_get_end_iter(buf.handle, endIter)
 
-    ' `rawPtr` holds the real, `g_malloc`'d C string as a plain ANY PTR
-    ' (freeable via the ordinary g_free, no bridging needed); `viaZstring`
-    ' reads it as a ZSTRING via eBasic's ANY-PTR-as-ZSTRING bridge (see
-    ' raw/gtk_text.bas's own doc comment on gtk_text_buffer_get_text) so
-    ' it can be copied into a real, independent STRING before freeing the
-    ' original.
     DIM rawPtr AS ANY PTR
     rawPtr = gtk_text_buffer_get_text(buf.handle, startIter, endIter, 0)
-    DIM viaZstring AS ZSTRING
-    viaZstring = rawPtr
-    DIM result AS STRING
-    result = viaZstring
-    CALL g_free(rawPtr)
 
     CALL FreeIter(startIter)
     CALL FreeIter(endIter)
-    TextBufferGetText = result
+    TextBufferGetText = rawPtr
 END FUNCTION
+
+''' Frees a `g_malloc`'d string returned by TextBufferGetText (or any of
+''' this package's other functions with the same "raw ANY PTR, caller
+''' frees it" shape - FileChooserGetFilePath, DataInputStreamReadLine/
+''' Finish) - exported specifically for this, since raw `g_free` itself
+''' isn't part of this package's public `--lib` interface (only real
+''' idiomatic-layer SUB/FUNCTION bodies are, never a raw Extern
+''' declaration).
+SUB FreeGMallocString(rawPtr AS ANY PTR)
+    CALL g_free(rawPtr)
+END SUB
 
 ''' Whether a buffer has unsaved changes since the last TextBufferSetModified(buf, 0)
 ''' (a fresh buffer, or one just saved, should call that to clear the flag).
