@@ -1,6 +1,7 @@
 ' Raw FFI layer: GLib core (`glib-2.0`).
 
 Extern "C" Lib "glib-2.0"
+    Declare Function g_malloc(ByVal n_bytes AS ULONGINT) AS ANY PTR
     Declare Sub g_free(ByVal mem AS ANY PTR)
 
     ' Pumps the default main context once. `may_block` (0/-1) mirrors

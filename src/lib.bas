@@ -17,6 +17,8 @@
 #include once "raw/gtk_label.bas"
 #include once "raw/gtk_entry.bas"
 #include once "raw/gtk_application.bas"
+#include once "raw/gtk_text.bas"
+#include once "raw/gtk_scrolled_window.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -26,3 +28,5 @@
 #include once "button.bas"
 #include once "label.bas"
 #include once "entry.bas"
+#include once "text.bas"
+#include once "scrolled_window.bas"

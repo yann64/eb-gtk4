@@ -12,9 +12,10 @@ Early development. Linux-first. Two layers:
   only.
 - **Idiomatic layer** (`src/*.bas`) - the package's real public API: plain
   eBasic `TYPE`s (`Widget`, `Window`, `Box`, `Grid`, `Button`, `Label`,
-  `Entry`, `Application`, each `EXTENDS`-chained from a common `Obj` base)
-  plus free functions operating on them (`NewButton`, `ButtonSetLabel`,
-  `WidgetShow`, `ObjConnect` for signals, ...).
+  `Entry`, `Application`, `TextBuffer`, `TextView`, `ScrolledWindow`, each
+  `EXTENDS`-chained from a common `Obj` base) plus free functions operating
+  on them (`NewButton`, `ButtonSetLabel`, `WidgetShow`, `ObjConnect` for
+  signals, `TextBufferGetText`/`SetText`, ...).
 
 **Free functions, not methods** - an eBasic `TYPE`'s own methods aren't
 exported across an `ebpm --lib` package boundary yet (only top-level
@@ -71,11 +72,15 @@ fixes this package depends on, all found and fixed while building it (see
 [yann64/ebasic](https://github.com/yann64/ebasic)'s roadmap for each):
 `@ProcName` (function pointers for signal callbacks); `ebpm` forwarding a
 dependency's own `Lib "name"` clauses transitively; `--lib` exporting a
-derived (`EXTENDS`) `TYPE` and top-level `CONST`/`ENUM`; and `ANY PTR`
+derived (`EXTENDS`) `TYPE` and top-level `CONST`/`ENUM`; `ANY PTR`
 correctly casting into a typed `PTR` (what lets this package use a single
 opaque `GObj` handle type throughout, restoring real "is this even a
 GObject-family pointer" type checking at the raw FFI layer, rather than
-`ANY PTR` everywhere accepting any pointer at all).
+`ANY PTR` everywhere accepting any pointer at all); and `ANY PTR` bridging
+to `ZSTRING` (what lets `TextBufferGetText` safely free
+`gtk_text_buffer_get_text`'s `g_malloc`'d return without leaking it - the
+first binding here that gets back a string it must free itself, rather
+than a borrowed one).
 
 ## Signals
 

@@ -39,9 +39,24 @@ DIM grd AS Grid
 grd = NewGrid()
 CALL GridAttach(grd, lbl, 0, 0, 1, 1)
 
+DIM sourceTv AS TextView
+sourceTv = NewTextView()
+CALL TextViewSetMonospace(sourceTv, 1)
+CALL TextViewSetWrapMode(sourceTv, GTK_WRAP_NONE)
+
+DIM tvBuf AS TextBuffer
+tvBuf = TextViewGetBuffer(sourceTv)
+CALL TextBufferSetText(tvBuf, "PRINT ""hello""")
+PRINT TextBufferGetText(tvBuf)
+
+DIM scroller AS ScrolledWindow
+scroller = NewScrolledWindow()
+CALL ScrolledWindowSetChild(scroller, sourceTv)
+
 CALL BoxAppend(vbox, lbl)
 CALL BoxAppend(vbox, txtEntry)
 CALL BoxAppend(vbox, btn)
+CALL BoxAppend(vbox, scroller)
 CALL WindowSetChild(win, vbox)
 
 CALL WindowPresent(win)
