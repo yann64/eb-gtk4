@@ -12,10 +12,15 @@ Early development. Linux-first. Two layers:
   only.
 - **Idiomatic layer** (`src/*.bas`) - the package's real public API: plain
   eBasic `TYPE`s (`Widget`, `Window`, `Box`, `Grid`, `Button`, `Label`,
-  `Entry`, `Application`, `TextBuffer`, `TextView`, `ScrolledWindow`, each
-  `EXTENDS`-chained from a common `Obj` base) plus free functions operating
-  on them (`NewButton`, `ButtonSetLabel`, `WidgetShow`, `ObjConnect` for
-  signals, `TextBufferGetText`/`SetText`, ...).
+  `Entry`, `Application`, `TextBuffer`, `TextView`, `ScrolledWindow`,
+  `SourceView`/`SourceBuffer` (real `GtkTextView`/`GtkTextBuffer`
+  subclasses - `EXTENDS TextView`/`TextBuffer`, so every `TextBuffer`/
+  `TextView` function already works on them), `SourceLanguage`/
+  `SourceLanguageManager`/`SourceStyleScheme`/`SourceStyleSchemeManager`,
+  each `EXTENDS`-chained from a common `Obj` base) plus free functions
+  operating on them (`NewButton`, `ButtonSetLabel`, `WidgetShow`,
+  `ObjConnect` for signals, `TextBufferGetText`/`SetText`,
+  `SourceBufferSetLanguage`, ...).
 
 **Free functions, not methods** - an eBasic `TYPE`'s own methods aren't
 exported across an `ebpm --lib` package boundary yet (only top-level
@@ -35,9 +40,10 @@ ebpm build
 ebpm test
 ```
 
-Requires GTK4 development libraries installed and discoverable by the
-linker's default search path (works out of the box on Linux; `pkg-config
---libs gtk4` should list `-lgtk-4` among others).
+Requires GTK4 and GtkSourceView 5 development libraries installed and
+discoverable by the linker's default search path (works out of the box on
+Linux; `pkg-config --libs gtk4 gtksourceview-5` should list `-lgtk-4` and
+`-lgtksourceview-5` among others).
 
 `ebpm test` only exercises display-independent functionality - see
 `tests/manual/widget_construction.bas` for a real-widget-construction
@@ -96,6 +102,31 @@ CALL ObjConnect(myButton, "clicked", @OnClicked, 0)
 a real C function pointer, usable as `ObjConnect`'s `handler` argument -
 see eBasic's own `@ProcName` docs for the C-ABI-compatibility rules this
 implies (no `STRING` parameters/return; use `ZSTRING`).
+
+## Syntax highlighting
+
+```basic
+DIM langMgr AS SourceLanguageManager
+langMgr = SourceLanguageManagerGetDefault()
+DIM lang AS SourceLanguage
+lang = SourceLanguageManagerGetLanguage(langMgr, "python3")
+
+DIM buf AS SourceBuffer
+buf = NewSourceBufferWithLanguage(lang)
+CALL SourceBufferSetHighlightSyntax(buf, 1)
+CALL TextBufferSetText(buf, "print(""hello"")")
+
+DIM view AS SourceView
+view = NewSourceViewWithBuffer(buf)
+CALL SourceViewSetShowLineNumbers(view, 1)
+```
+
+`SourceLanguageManagerGetLanguage`/`SourceStyleSchemeManagerGetScheme`
+return a value whose `.handle` is `0` if the given id isn't known - check
+directly (this language has no OOP encapsulation yet, so every `TYPE`
+field is already public). To highlight a language GtkSourceView doesn't
+ship built in, add your own `.lang` file's directory via
+`SourceLanguageManagerAppendSearchPath` before looking it up.
 
 ## Layout
 

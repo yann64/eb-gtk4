@@ -19,6 +19,7 @@
 #include once "raw/gtk_application.bas"
 #include once "raw/gtk_text.bas"
 #include once "raw/gtk_scrolled_window.bas"
+#include once "raw/gtksourceview.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -30,3 +31,4 @@
 #include once "entry.bas"
 #include once "text.bas"
 #include once "scrolled_window.bas"
+#include once "sourceview.bas"

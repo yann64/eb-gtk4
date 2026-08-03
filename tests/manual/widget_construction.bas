@@ -39,15 +39,23 @@ DIM grd AS Grid
 grd = NewGrid()
 CALL GridAttach(grd, lbl, 0, 0, 1, 1)
 
-DIM sourceTv AS TextView
-sourceTv = NewTextView()
+DIM langMgr AS SourceLanguageManager
+langMgr = SourceLanguageManagerGetDefault()
+DIM py AS SourceLanguage
+py = SourceLanguageManagerGetLanguage(langMgr, "python3")
+
+DIM srcBuf AS SourceBuffer
+srcBuf = NewSourceBufferWithLanguage(py)
+CALL SourceBufferSetHighlightSyntax(srcBuf, 1)
+CALL TextBufferSetText(srcBuf, "print(""hello"")")
+PRINT TextBufferGetText(srcBuf)
+
+DIM sourceTv AS SourceView
+sourceTv = NewSourceViewWithBuffer(srcBuf)
 CALL TextViewSetMonospace(sourceTv, 1)
 CALL TextViewSetWrapMode(sourceTv, GTK_WRAP_NONE)
-
-DIM tvBuf AS TextBuffer
-tvBuf = TextViewGetBuffer(sourceTv)
-CALL TextBufferSetText(tvBuf, "PRINT ""hello""")
-PRINT TextBufferGetText(tvBuf)
+CALL SourceViewSetShowLineNumbers(sourceTv, 1)
+CALL SourceViewSetHighlightCurrentLine(sourceTv, 1)
 
 DIM scroller AS ScrolledWindow
 scroller = NewScrolledWindow()
