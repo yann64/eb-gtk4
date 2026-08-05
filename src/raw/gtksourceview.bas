@@ -42,4 +42,20 @@ Extern "C" Lib "gtksourceview-5"
 
     Declare Function gtk_source_style_scheme_manager_get_default() AS GObj PTR
     Declare Function gtk_source_style_scheme_manager_get_scheme(ByVal manager AS GObj PTR, ByVal scheme_id AS ZSTRING) AS GObj PTR
+
+    ' GtkSourceCompletion is created automatically the first time a
+    ' GtkSourceView is constructed - there is no gtk_source_completion_new,
+    ' only this getter (a borrowed reference, the view owns it - see
+    ' idiomatic SourceViewGetCompletion). GtkSourceCompletionWords is a
+    ' ready-made GtkSourceCompletionProvider that needs no custom GObject-
+    ' interface implementation at all: it just watches a plain
+    ' GtkTextBuffer (gtk_source_completion_words_register) and offers
+    ' every distinct word found in it as a completion candidate - real,
+    ' live-as-you-type popup UI (positioning, filtering, keyboard nav,
+    ' insertion) all handled internally by the library itself.
+    Declare Function gtk_source_view_get_completion(ByVal view AS GObj PTR) AS GObj PTR
+    Declare Sub gtk_source_completion_add_provider(ByVal completion AS GObj PTR, ByVal provider AS GObj PTR)
+    Declare Function gtk_source_completion_show(ByVal completion AS GObj PTR) AS INTEGER
+    Declare Function gtk_source_completion_words_new(ByVal title AS ZSTRING) AS GObj PTR
+    Declare Sub gtk_source_completion_words_register(ByVal words AS GObj PTR, ByVal buffer AS GObj PTR)
 End Extern

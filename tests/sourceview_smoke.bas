@@ -45,4 +45,20 @@ PRINT text
 
 CALL ObjDestroy(buf)
 
+' GtkSourceCompletionWords needs no display to construct/register against
+' a plain TextBuffer (same reasoning as everything else in this file) -
+' only the real popup UI itself needs one, which this smoke test can't
+' exercise (see tests/manual/widget_construction.bas for that).
+DIM wordsBuf AS TextBuffer
+wordsBuf = NewTextBuffer()
+CALL TextBufferSetText(wordsBuf, "alpha beta gamma")
+
+DIM provider AS SourceCompletionWords
+provider = NewSourceCompletionWords("test")
+CALL SourceCompletionWordsRegister(provider, wordsBuf)
+PRINT provider.handle <> 0
+
+CALL ObjDestroy(provider)
+CALL ObjDestroy(wordsBuf)
+
 PRINT "sourceview smoke ok"

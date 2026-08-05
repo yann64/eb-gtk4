@@ -24,6 +24,9 @@ expected to be architecturally harder. Two layers:
   subclasses - `EXTENDS TextView`/`TextBuffer`, so every `TextBuffer`/
   `TextView` function already works on them), `SourceLanguage`/
   `SourceLanguageManager`/`SourceStyleScheme`/`SourceStyleSchemeManager`,
+  `SourceCompletion`/`SourceCompletionWords` (a real, live-as-you-type
+  completion popup - no custom GObject-interface implementation needed;
+  see `SourceCompletionWordsRegister`'s own doc comment),
   `SubprocessLauncher`/`Subprocess`/`InputStream`/`OutputStream`/
   `DataInputStream`, `HeaderBar`, `Paned`, `ListBox`/`ListBoxRow`,
   `FileChooserNative`, `EventControllerKey`, each `EXTENDS`-chained from a

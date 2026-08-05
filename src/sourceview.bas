@@ -41,6 +41,28 @@ END TYPE
 TYPE SourceStyleSchemeManager EXTENDS Obj
 END TYPE
 
+''' A GtkSourceCompletion - owns the real completion popup UI
+''' (positioning, live filtering-as-you-type, keyboard navigation,
+''' insertion) entirely internally; created automatically the first time
+''' its GtkSourceView is constructed, never by this package - see
+''' SourceViewGetCompletion (a borrowed reference, same convention as
+''' TextViewGetBuffer).
+TYPE SourceCompletion EXTENDS Obj
+END TYPE
+
+''' A GtkSourceCompletionWords - a ready-made completion provider that
+''' needs no custom GObject-interface implementation at all: register a
+''' plain TextBuffer against it (SourceCompletionWordsRegister) and it
+''' offers every distinct word found in that buffer's text as a
+''' completion candidate. The registered buffer never needs a display
+''' (same "a TextBuffer needs no display to construct or operate on"
+''' fact text.bas's own callers already rely on) - a natural place to
+''' keep a live, off-screen list of known names (keywords, procedure
+''' names, ...) fed from wherever a consumer gets that data (e.g. an LSP
+''' client).
+TYPE SourceCompletionWords EXTENDS Obj
+END TYPE
+
 ''' Creates a new GtkSourceView with its own fresh GtkSourceBuffer - see
 ''' NewSourceViewWithBuffer to attach a specific buffer instead (e.g. one
 ''' already configured with a language/style scheme).
@@ -174,3 +196,47 @@ FUNCTION SourceStyleSchemeManagerGetScheme(mgr AS SourceStyleSchemeManager, sche
     s.handle = gtk_source_style_scheme_manager_get_scheme(mgr.handle, schemeId)
     SourceStyleSchemeManagerGetScheme = s
 END FUNCTION
+
+''' Reads a view's completion controller - always already exists (created
+''' automatically when the view itself was constructed), a borrowed
+''' reference, same convention as TextViewGetBuffer.
+FUNCTION SourceViewGetCompletion(view AS SourceView) AS SourceCompletion
+    DIM c AS SourceCompletion
+    c.handle = gtk_source_view_get_completion(view.handle)
+    SourceViewGetCompletion = c
+END FUNCTION
+
+''' Attaches a provider (e.g. one created via NewSourceCompletionWords) to
+''' a view's completion controller - live-as-you-type completion starts
+''' working the moment at least one provider is attached, no separate
+''' opt-in call needed.
+SUB SourceCompletionAddProvider(comp AS SourceCompletion, words AS SourceCompletionWords)
+    CALL gtk_source_completion_add_provider(comp.handle, words.handle)
+END SUB
+
+''' Shows the completion popup immediately, regardless of what (if
+''' anything) has been typed yet - the usual "show suggestions now"
+''' affordance on top of live-as-you-type triggering.
+SUB SourceCompletionShow(comp AS SourceCompletion)
+    CALL gtk_source_completion_show(comp.handle)
+END SUB
+
+''' Creates a new words-based completion provider - `title` is a short,
+''' human-readable label for this provider (shown if a consuming app ever
+''' displays multiple providers' names; a single-provider app like this
+''' one never actually shows it). Register one or more TextBuffers
+''' against it via SourceCompletionWordsRegister before attaching it to a
+''' view via SourceCompletionAddProvider.
+FUNCTION NewSourceCompletionWords(title AS ZSTRING) AS SourceCompletionWords
+    DIM w AS SourceCompletionWords
+    w.handle = SinkHandle(gtk_source_completion_words_new(title))
+    NewSourceCompletionWords = w
+END FUNCTION
+
+''' Registers a TextBuffer as a source of candidate words - every distinct
+''' word found in its text becomes a completion candidate. The buffer
+''' never needs to be shown by any view; a plain NewTextBuffer() used only
+''' to hold a known-names list works fine.
+SUB SourceCompletionWordsRegister(words AS SourceCompletionWords, buf AS TextBuffer)
+    CALL gtk_source_completion_words_register(words.handle, buf.handle)
+END SUB
