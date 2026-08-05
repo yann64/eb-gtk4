@@ -30,6 +30,10 @@ buf = NewSourceBufferWithLanguage(py)
 CALL SourceBufferSetHighlightSyntax(buf, 1)
 CALL TextBufferSetText(buf, "print(1)")
 
+DIM roundTrippedLang AS SourceLanguage
+roundTrippedLang = SourceBufferGetLanguage(buf)
+PRINT roundTrippedLang.handle = py.handle
+
 DIM rawText AS ANY PTR
 rawText = TextBufferGetText(buf)
 DIM viaZstring AS ZSTRING

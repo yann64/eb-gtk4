@@ -28,8 +28,8 @@ expected to be architecturally harder. Two layers:
   `DataInputStream`, `HeaderBar`, `Paned`, `ListBox`/`ListBoxRow`,
   `FileChooserNative`, `EventControllerKey`, each `EXTENDS`-chained from a
   common `Obj` base) plus free functions operating on them (`NewButton`,
-  `ButtonSetLabel`, `WidgetShow`, `ObjConnect` for signals,
-  `TextBufferGetText`/`SetText`, `SourceBufferSetLanguage`,
+  `ButtonSetLabel`, `WidgetShow`, `WidgetGrabFocus`, `ObjConnect` for
+  signals, `TextBufferGetText`/`SetText`, `SourceBufferSetLanguage`,
   `SubprocessLauncherSpawnv`, `ListBoxAppend`, `ReadFileContents`/
   `WriteFileContents`, ...).
 

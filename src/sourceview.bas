@@ -110,6 +110,15 @@ SUB SourceBufferSetLanguage(buf AS SourceBuffer, lang AS SourceLanguage)
     CALL gtk_source_buffer_set_language(buf.handle, lang.handle)
 END SUB
 
+''' Reads a buffer's current language - a "none set" result has
+''' `.handle = 0`, same borrowed-reference convention as
+''' SourceLanguageManagerGetLanguage.
+FUNCTION SourceBufferGetLanguage(buf AS SourceBuffer) AS SourceLanguage
+    DIM lang AS SourceLanguage
+    lang.handle = gtk_source_buffer_get_language(buf.handle)
+    SourceBufferGetLanguage = lang
+END FUNCTION
+
 ''' Sets a buffer's color scheme (see SourceStyleSchemeManagerGetScheme).
 SUB SourceBufferSetStyleScheme(buf AS SourceBuffer, scheme AS SourceStyleScheme)
     CALL gtk_source_buffer_set_style_scheme(buf.handle, scheme.handle)

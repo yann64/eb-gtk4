@@ -29,6 +29,20 @@ CALL TextBufferPlaceCursorAt(buf, 0, 3)
 PRINT TextBufferGetCursorLine(buf)
 PRINT TextBufferGetCursorColumn(buf)
 
+DIM deleteBuf AS TextBuffer
+deleteBuf = NewTextBuffer()
+CALL TextBufferSetText(deleteBuf, "hello world")
+CALL TextBufferDelete(deleteBuf, 0, 5, 0, 11)
+DIM rawDeleted AS ANY PTR
+rawDeleted = TextBufferGetText(deleteBuf)
+DIM viaZstring3 AS ZSTRING
+viaZstring3 = rawDeleted
+DIM deletedText AS STRING
+deletedText = viaZstring3
+CALL FreeGMallocString(rawDeleted)
+PRINT deletedText
+CALL ObjDestroy(deleteBuf)
+
 DIM appendBuf AS TextBuffer
 appendBuf = NewTextBuffer()
 CALL TextBufferAppendLine(appendBuf, "first")

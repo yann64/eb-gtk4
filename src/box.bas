@@ -21,6 +21,12 @@ SUB BoxAppend(box AS Box, child AS Widget)
     CALL gtk_box_append(box.handle, child.handle)
 END SUB
 
+''' Removes a child widget from the box (must already be one of its
+''' direct children).
+SUB BoxRemove(box AS Box, child AS Widget)
+    CALL gtk_box_remove(box.handle, child.handle)
+END SUB
+
 ''' Changes the pixel gap between the box's children.
 SUB BoxSetSpacing(box AS Box, spacing AS INTEGER)
     CALL gtk_box_set_spacing(box.handle, spacing)

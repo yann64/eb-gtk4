@@ -162,6 +162,19 @@ SUB TextBufferSelectRange(buf AS TextBuffer, startLine AS INTEGER, startCol AS I
     CALL FreeIter(endIter)
 END SUB
 
+''' Deletes the text between two line/column positions.
+SUB TextBufferDelete(buf AS TextBuffer, startLine AS INTEGER, startCol AS INTEGER, endLine AS INTEGER, endCol AS INTEGER)
+    DIM startIter AS ANY PTR
+    DIM endIter AS ANY PTR
+    startIter = NewIter()
+    endIter = NewIter()
+    CALL gtk_text_buffer_get_iter_at_line_offset(buf.handle, startIter, startLine, startCol)
+    CALL gtk_text_buffer_get_iter_at_line_offset(buf.handle, endIter, endLine, endCol)
+    CALL gtk_text_buffer_delete(buf.handle, startIter, endIter)
+    CALL FreeIter(startIter)
+    CALL FreeIter(endIter)
+END SUB
+
 ' Pango underline styles (real pango enum, docs.gtk.org) - PANGO_UNDERLINE_ERROR
 ' renders GTK's own recognizable red squiggly underline, the natural
 ' choice for LSP error diagnostics; the others are exposed for completeness.
