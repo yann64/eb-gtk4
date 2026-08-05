@@ -1,11 +1,20 @@
 ' Manual verification only - NOT run by `ebpm test`.
 '
 ' Exercises real widget construction through the idiomatic layer, which
-' needs a working GTK4 display backend. Confirmed (2026-07-29, GTK 4.22.4)
-' that gtk_window_new() segfaults even from a minimal, hand-written C
-' program in the sandbox this package was developed in - a real GTK4
-' display-backend/environment limitation there, not a defect in this
-' package's bindings. Run this by hand on a real desktop to verify.
+' needs a working GTK4 display backend. This file constructs a bare
+' GtkWindow directly at top level - confirmed (2026-07-29, GTK 4.22.4)
+' that this segfaults even from a minimal, hand-written C program in the
+' sandbox this package was developed in, but a LATER session narrowed
+' down why: it's specifically because this never establishes a real
+' GtkApplication/"activate" bootstrap first (real GTK4 requires it) - a
+' real, live GTK4 desktop that DOES go through that bootstrap correctly
+' (see `ebasic-editor`'s own `src/main.bas`) renders a fully correct
+' window with no crash at all, confirmed by direct reproduction with
+' screenshots. So: a real display backend is genuinely needed to run
+' this file at all (that part was never wrong), but the segfault itself
+' is this file's own minimal-repro shape skipping GtkApplication, not a
+' defect in this package's bindings or a blanket "GTK4 doesn't work
+' here" finding. Run this by hand on a real desktop to verify.
 '
 ' Local variable names deliberately avoid the TYPE names themselves
 ' (Box/Entry/Grid/...) - eBasic identifiers are case-insensitive and share

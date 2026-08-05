@@ -5,7 +5,14 @@ managed with `ebpm`.
 
 ## Status
 
-Early development. Linux-first. Two layers:
+Early development. Was Linux-first (untested elsewhere) - confirmed
+since to also compile, link, and *run* for real on Haiku (real
+`gtk4`/`gtksourceview5`/`glib2` HaikuPorts packages; see `ebasic-editor`'s
+own README "Haiku" section for the real verification detail, since that's
+the actual GUI vehicle this was proven through). No native code of its
+own to port (pure `Extern "C" Lib "..."` FFI over GLib/GObject/GTK4's own
+stable, OS-independent C ABI) - Windows/macOS remain untried, not
+expected to be architecturally harder. Two layers:
 
 - **Raw layer** (`src/raw/`) - flat `Extern "C" Lib "..."` declarations
   mirroring GLib/GObject/GIO and GTK4's core widgets 1:1. Internal use
