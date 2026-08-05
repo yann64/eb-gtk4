@@ -42,6 +42,7 @@ DIM txtEntry AS Entry
 txtEntry = NewEntry()
 CALL EntrySetText(txtEntry, "text")
 PRINT EntryGetText(txtEntry)
+CALL WidgetGrabFocus(txtEntry)
 
 DIM grd AS Grid
 grd = NewGrid()

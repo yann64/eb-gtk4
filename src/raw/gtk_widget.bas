@@ -9,4 +9,11 @@ Extern "C" Lib "gtk-4"
     ' A dedicated, non-variadic convenience function (unlike most GTK
     ' style/appearance knobs) - the natural fit for LSP hover text.
     Declare Sub gtk_widget_set_tooltip_text(ByVal widget AS GObj PTR, ByVal text AS ZSTRING)
+    ' Returns TRUE/FALSE (INTEGER) - a widget can refuse focus (not
+    ' focusable, not visible/mapped yet, ...), matching real GTK4
+    ' semantics; the idiomatic wrapper doesn't force callers to check it
+    ' (best-effort, same as WidgetShow/WidgetSetVisible's own fire-and-
+    ' forget shape), but the raw signature still reflects the real return
+    ' type rather than silently discarding it at the FFI boundary.
+    Declare Function gtk_widget_grab_focus(ByVal widget AS GObj PTR) AS INTEGER
 End Extern

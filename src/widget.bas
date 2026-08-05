@@ -79,6 +79,13 @@ SUB WidgetSetTooltipText(w AS Widget, text AS ZSTRING)
     CALL gtk_widget_set_tooltip_text(w.handle, text)
 END SUB
 
+''' Moves real keyboard focus to `w` - a no-op (best-effort, matching
+''' WidgetShow/WidgetSetVisible's own fire-and-forget shape) if `w`
+''' can't currently accept it (not focusable, not visible/mapped yet).
+SUB WidgetGrabFocus(w AS Widget)
+    CALL gtk_widget_grab_focus(w.handle)
+END SUB
+
 ''' Wraps an existing, already-owned raw handle (e.g. the instance/data
 ''' pointer a signal handler receives) into a value of this package's
 ''' own Widget TYPE - does NOT take a new reference (unlike a New*
