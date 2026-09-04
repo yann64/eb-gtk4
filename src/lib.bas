@@ -26,6 +26,8 @@
 #include once "raw/gtk_listbox.bas"
 #include once "raw/gtk_filechooser.bas"
 #include once "raw/gtk_eventkey.bas"
+#include once "raw/gtk_statusbar.bas"
+#include once "raw/gtk_timer.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -45,3 +47,5 @@
 #include once "filechooser.bas"
 #include once "fileio.bas"
 #include once "eventkey.bas"
+#include once "statusbar.bas"
+#include once "timer.bas"

@@ -1,0 +1,10 @@
+[package]
+name = "statusbar_timer"
+version = "0.1.0"
+
+[bin]
+name = "statusbar_timer"
+path = "src/main.bas"
+
+[dependencies]
+gtk4 = { path = "../.." }

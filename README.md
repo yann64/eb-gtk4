@@ -9,10 +9,18 @@ Early development. Was Linux-first (untested elsewhere) - confirmed
 since to also compile, link, and *run* for real on Haiku (real
 `gtk4`/`gtksourceview5`/`glib2` HaikuPorts packages; see `ebasic-editor`'s
 own README "Haiku" section for the real verification detail, since that's
-the actual GUI vehicle this was proven through). No native code of its
-own to port (pure `Extern "C" Lib "..."` FFI over GLib/GObject/GTK4's own
-stable, OS-independent C ABI) - Windows/macOS remain untried, not
-expected to be architecturally harder. Two layers:
+the actual GUI vehicle this was proven through). Almost entirely pure
+`Extern "C" Lib "..."` FFI over GLib/GObject/GTK4's own stable,
+OS-independent C ABI - Windows/macOS remain untried, not expected to be
+architecturally harder - **except one small piece of native code**
+(`native/shim_timer.h`/`.cpp`, `libebgtk4shim.a`): real GLib has no
+persistent, configurable timer object, only a fire-and-forget
+`g_timeout_add` primitive whose own callback decides repeat-vs-stop
+*reactively* per firing - bridging that to a `Start`/`Stop`/
+`SetSingleShot` object model (matching a richer, already-established
+convention from a sibling package) needs a real trampoline, since
+eBasic itself has no way to call through an arbitrary stored function
+pointer. See "Building" below for the extra step this adds. Two layers:
 
 - **Raw layer** (`src/raw/`) - flat `Extern "C" Lib "..."` declarations
   mirroring GLib/GObject/GIO and GTK4's core widgets 1:1. Internal use
@@ -60,9 +68,17 @@ ANY-PTR-as-`ZSTRING` bridge.
 ## Building
 
 ```sh
-ebpm build
-ebpm test
+cmake -S native -B native/build && cmake --build native/build
+EBASIC_LIBRARY_PATH=$(pwd)/native/build ebpm build
+EBASIC_LIBRARY_PATH=$(pwd)/native/build ebpm test
 ```
+
+`EBASIC_LIBRARY_PATH` (not `LIBRARY_PATH` - see `ebpm`'s own docs for
+why) tells `ebc`/`ebpm` where to find the just-built `libebgtk4shim.a` -
+this package's manifest has no field for a real, external native
+library's own directory, the same gap `eb-qt6`/`eb-haiku` document for
+their own native shims (`GtkTimer`, `timer.bas`, is the only feature
+needing this - everything else needs no native step at all).
 
 Requires GTK4 and GtkSourceView 5 development libraries installed and
 discoverable by the linker's default search path (works out of the box on
@@ -155,6 +171,45 @@ CALL WindowClose(myWindow)   ' goes through "close-request", unlike WindowDestro
 that has already been `WindowPresent`-ed at least once (confirmed via a
 standalone, non-interactive test program) - calling it on a
 never-presented window is silently a no-op.
+
+## Status bar
+
+```basic
+DIM sb AS StatusBar
+sb = NewStatusBar()
+CALL WindowSetChild(myWindow, sb)   ' or pack it into a Box with other widgets
+CALL StatusBarShowMessage(sb, "Ready")
+CALL StatusBarClear(sb)
+```
+
+Backed by `GtkStatusbar`, deprecated upstream since GTK 4.10 but still
+the only concrete statusbar widget GTK4 offers at all. Always uses a
+single message context internally (obtained once at construction) -
+GtkStatusbar's own multi-context stacking isn't exposed, since nothing
+in this package needs more than "show the current message."
+
+## Timer
+
+```basic
+DIM t AS GtkTimer
+t = NewGtkTimer()
+CALL GtkTimerSetInterval(t, 1000)
+CALL GtkTimerSetSingleShot(t, 0)   ' 1 = fire once then stop
+
+SUB OnTick(userData AS ANY PTR)
+    PRINT "tick"
+END SUB
+CALL GtkTimerConnectTimeout(t, @OnTick, 0)
+
+CALL GtkTimerStart(t)
+PRINT GtkTimerIsActive(t)   ' -1
+CALL GtkTimerStop(t)
+CALL GtkTimerDestroy(t)     ' not a GObject - has its own destroy, not ObjDestroy
+```
+
+Named `GtkTimer`, not `Timer` - eBasic's own stdlib already defines a
+top-level `Timer()` function (seconds elapsed) and identifiers are
+case-insensitive, so a bare `TYPE Timer` would collide with it.
 
 ## Syntax highlighting
 
@@ -323,5 +378,9 @@ also exposes as a dedicated, ordinary function.
 - `src/raw/` - the raw FFI layer (see above).
 - `src/*.bas` - the idiomatic layer (see above); `src/lib.bas` is the
   package's `#include` aggregator (its own `[lib]` entry point).
+- `native/` - this package's one small piece of native code
+  (`shim_timer.h`/`.cpp`, see "Status"/"Building" above) - not
+  `ebpm`/`ebc`-driven, built standalone the same way `eb-qt6`/
+  `eb-haiku`'s own native shims are.
 - `tests/` - `ebpm test` suite; `tests/manual/` holds checks that need a
   real GTK4 display backend, run by hand rather than automatically.
