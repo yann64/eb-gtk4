@@ -31,6 +31,8 @@
 #include once "raw/gtk_menu.bas"
 #include once "raw/gtk_check_button.bas"
 #include once "raw/gtk_combo_box_text.bas"
+#include once "raw/gtk_progress_bar.bas"
+#include once "raw/gtk_scale.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -56,3 +58,5 @@
 #include once "toolbar.bas"
 #include once "check_button.bas"
 #include once "combo_box_text.bas"
+#include once "progress_bar.bas"
+#include once "scale.bas"

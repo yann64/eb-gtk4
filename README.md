@@ -553,6 +553,31 @@ package's own established preference for the simplest working API.
 `CheckButtonGetLabel`'s borrowed one) - free it via the existing
 `FreeGMallocString` (`text.bas`).
 
+## ProgressBar/Scale (v0.14.0)
+
+```basic
+DIM p AS ProgressBar
+p = NewProgressBar()
+CALL ProgressBarSetFraction(p, 0.5)   ' real GTK4: 0.0-1.0, no integer min/max/value
+
+DIM s AS Scale
+s = NewScale(GTK_ORIENTATION_HORIZONTAL, 0.0, 100.0, 1.0)
+CALL ScaleSetValue(s, 42.0)
+CALL ObjConnect(s, "value-changed", @OnValueChanged, 0)
+```
+
+Real GTK4's `GtkProgressBar` has no integer min/max/value model at
+all - just a plain `0.0-1.0` double fraction, unlike Qt6/Haiku's own
+richer range widgets. This package exposes that real shape directly;
+`eb-gui-gtk4`'s own adapter is what translates the universal contract's
+richer integer range model on top of it (see that package's own
+README). `Scale` is a real `GtkRange` subclass - `ScaleSetRange`/
+`SetValue`/`GetValue` are inherited `gtk_range_*` functions, confirmed
+against this host's own `gtkrange.h` (not assumed - `gtk_range_set_range`
+in particular is easy to assume absent but is real). `"value-changed"`
+reuses the existing generic `ObjConnect` mechanism, same as every other
+plain signal in this package.
+
 ## Layout
 
 - `src/raw/` - the raw FFI layer (see above).
