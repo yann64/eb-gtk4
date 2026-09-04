@@ -8,8 +8,19 @@ managed with `ebpm`.
 Early development. Was Linux-first (untested elsewhere) - confirmed
 since to also compile, link, and *run* for real on Haiku (real
 `gtk4`/`gtksourceview5`/`glib2` HaikuPorts packages; see `ebasic-editor`'s
-own README "Haiku" section for the real verification detail, since that's
-the actual GUI vehicle this was proven through). Almost entirely pure
+own README "Haiku" section for that earlier verification detail, since
+that was the actual GUI vehicle it was first proven through). **Directly
+reconfirmed since (2026-09-04, v0.11.0)** against this package's own test
+suite and examples on real Haiku hardware, zero source changes needed:
+`native/CMakeLists.txt`'s `pkg_check_modules` finds real, HaikuPorts-
+packaged `gtk4`/`gio-2.0` unmodified, all 8 `ebpm test` cases pass, and
+`examples/hello_window`/`examples/menu_toolbar` both render live with
+Haiku's own native window decorations (Haiku's GTK4 port uses its own
+GDK backend, not X11/Wayland/Broadway, despite reporting a `wl_ips_*`
+connection at startup). `eb-gui-gtk4` (the universal GUI adapter built on
+this package) was reconfirmed working there too, so no separate
+BWindow-native adapter is needed to get eBasic GUI apps running on Haiku
+via GTK4. Almost entirely pure
 `Extern "C" Lib "..."` FFI over GLib/GObject/GTK4's own stable,
 OS-independent C ABI - Windows/macOS remain untried, not expected to be
 architecturally harder - **except one small piece of native code**
