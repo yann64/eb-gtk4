@@ -18,4 +18,11 @@ Extern "C" Lib "gtk-4"
     Declare Function gtk_list_box_get_row_at_index(ByVal box AS GObj PTR, ByVal index AS INTEGER) AS GObj PTR
     Declare Function gtk_list_box_row_get_index(ByVal row AS GObj PTR) AS INTEGER
     Declare Sub gtk_list_box_set_activate_on_single_click(ByVal box AS GObj PTR, ByVal singleClick AS INTEGER)
+    ' Selection - a NULL row means "none selected".
+    Declare Function gtk_list_box_get_selected_row(ByVal box AS GObj PTR) AS GObj PTR
+    Declare Sub gtk_list_box_select_row(ByVal box AS GObj PTR, ByVal row AS GObj PTR)
+    ' A row's own appended child widget (see gtk_list_box_append) -
+    ' lets a caller read back what it stored per row without needing to
+    ' track it separately.
+    Declare Function gtk_list_box_row_get_child(ByVal row AS GObj PTR) AS GObj PTR
 End Extern

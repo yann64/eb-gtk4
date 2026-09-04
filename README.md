@@ -578,6 +578,32 @@ in particular is easy to assume absent but is real). `"value-changed"`
 reuses the existing generic `ObjConnect` mechanism, same as every other
 plain signal in this package.
 
+## ListBox selection (v0.15.0)
+
+```basic
+DIM sel AS ListBoxRow
+sel = ListBoxGetSelectedRow(box)   ' .handle = 0 if nothing selected
+CALL ListBoxSelectRow(box, ListBoxGetRowAtIndex(box, 0))
+
+DIM child AS Widget
+child = ListBoxRowGetChild(sel)   ' read back whatever you appended
+```
+
+Closes the gap `ListBox` originally shipped with: `ListBoxGetSelectedRow`/
+`SelectRow` (real `gtk_list_box_get_selected_row`/`select_row` - `NULL`
+means "none selected") and `ListBoxRowGetChild` (real
+`gtk_list_box_row_get_child` - lets a caller read back a row's own
+appended widget instead of tracking it separately elsewhere). No
+`"row-selected"`/`"row-activated"` signal wrapper is added here - real
+GTK4's signal shape for both is `(GtkListBox*, GtkListBoxRow*,
+gpointer)`, three real arguments, which the existing generic
+`ObjConnect` mechanism handles fine as long as the CALLER'S OWN handler
+is declared with the matching 3-parameter shape (`(box AS GObj PTR, row
+AS GObj PTR, data AS ANY PTR)`, then `WrapListBoxRow(row)` to get an
+idiomatic handle) - `eb-gui-gtk4`'s own bridging of this to the
+universal contract's simpler 1-param handler shape needs its own
+dedicated native trampoline, documented in that package's own README.
+
 ## Layout
 
 - `src/raw/` - the raw FFI layer (see above).

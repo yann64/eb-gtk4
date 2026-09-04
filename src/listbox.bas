@@ -50,6 +50,29 @@ SUB ListBoxSetActivateOnSingleClick(box AS ListBox, singleClick AS INTEGER)
     CALL gtk_list_box_set_activate_on_single_click(box.handle, singleClick)
 END SUB
 
+''' The currently selected row, or a "none selected" result
+''' (`.handle = 0`) - real GTK4 returns NULL when nothing is selected.
+FUNCTION ListBoxGetSelectedRow(box AS ListBox) AS ListBoxRow
+    DIM r AS ListBoxRow
+    r.handle = gtk_list_box_get_selected_row(box.handle)
+    ListBoxGetSelectedRow = r
+END FUNCTION
+
+''' Selects `row` - pass a `ListBoxRow` with `.handle = 0` to clear the
+''' selection (real GTK4 accepts NULL directly).
+SUB ListBoxSelectRow(box AS ListBox, row AS ListBoxRow)
+    CALL gtk_list_box_select_row(box.handle, row.handle)
+END SUB
+
+''' A row's own appended child widget (see ListBoxAppend) - lets a
+''' caller read back what it stored per row without tracking it
+''' separately.
+FUNCTION ListBoxRowGetChild(row AS ListBoxRow) AS Widget
+    DIM w AS Widget
+    w.handle = gtk_list_box_row_get_child(row.handle)
+    ListBoxRowGetChild = w
+END FUNCTION
+
 ''' See WrapWidget's own doc comment.
 FUNCTION WrapListBox(h AS ANY PTR) AS ListBox
     DIM b AS ListBox
