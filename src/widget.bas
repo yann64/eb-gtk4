@@ -86,6 +86,20 @@ SUB WidgetGrabFocus(w AS Widget)
     CALL gtk_widget_grab_focus(w.handle)
 END SUB
 
+''' A disabled (desensitized) widget is grayed out and stops accepting
+''' input - real GTK4 also disables (transitively) any child widgets,
+''' unless one of them was explicitly re-enabled itself. GTK4 has no
+''' window-level "disabled" concept of its own - a Window (EXTENDS
+''' Widget) desensitized this way behaves like any other desensitized
+''' widget: still visible, but grayed out and non-interactive.
+SUB WidgetSetEnabled(w AS Widget, enabled AS INTEGER)
+    CALL gtk_widget_set_sensitive(w.handle, enabled)
+END SUB
+
+FUNCTION WidgetIsEnabled(w AS Widget) AS INTEGER
+    WidgetIsEnabled = gtk_widget_get_sensitive(w.handle)
+END FUNCTION
+
 ''' Wraps an existing, already-owned raw handle (e.g. the instance/data
 ''' pointer a signal handler receives) into a value of this package's
 ''' own Widget TYPE - does NOT take a new reference (unlike a New*

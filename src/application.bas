@@ -31,3 +31,10 @@ FUNCTION WrapApplication(h AS ANY PTR) AS Application
     app.handle = h
     WrapApplication = app
 END FUNCTION
+
+''' Stops ApplicationRun's main loop, returning control to its caller -
+''' safe to call from any signal handler, including one connected to
+''' `app` itself (e.g. a menu item's "activate" handler for Quit).
+SUB ApplicationQuit(app AS Application)
+    CALL g_application_quit(app.handle)
+END SUB

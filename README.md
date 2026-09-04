@@ -130,6 +130,32 @@ a real C function pointer, usable as `ObjConnect`'s `handler` argument -
 see eBasic's own `@ProcName` docs for the C-ABI-compatibility rules this
 implies (no `STRING` parameters/return; use `ZSTRING`).
 
+## Window lifecycle
+
+```basic
+CALL ApplicationQuit(app)                 ' stop ApplicationRun's main loop
+
+CALL WidgetSetEnabled(myWidget, 0)        ' grayed out, stops accepting input
+PRINT WidgetIsEnabled(myWidget)           ' 0 - GTK4 has no window-level
+                                           ' "disabled" concept, only per-widget
+
+CALL WindowSetModal(childWin, parentWin)  ' blocks parentWin until childWin closes
+CALL WindowClearModal(childWin)
+PRINT WindowIsModal(childWin)
+
+SUB OnCloseRequest(win AS GObj PTR, data AS ANY PTR) AS INTEGER
+    OnCloseRequest = 1   ' TRUE = veto the close; FALSE = let it proceed
+END SUB
+CALL ObjConnect(myWindow, "close-request", @OnCloseRequest, 0)
+CALL WindowPresent(myWindow)
+CALL WindowClose(myWindow)   ' goes through "close-request", unlike WindowDestroy
+```
+
+`gtk_window_close()`/`WindowClose` only emits `close-request` on a window
+that has already been `WindowPresent`-ed at least once (confirmed via a
+standalone, non-interactive test program) - calling it on a
+never-presented window is silently a no-op.
+
 ## Syntax highlighting
 
 ```basic

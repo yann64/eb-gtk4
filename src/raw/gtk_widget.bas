@@ -16,4 +16,11 @@ Extern "C" Lib "gtk-4"
     ' forget shape), but the raw signature still reflects the real return
     ' type rather than silently discarding it at the FFI boundary.
     Declare Function gtk_widget_grab_focus(ByVal widget AS GObj PTR) AS INTEGER
+    ' A desensitized (disabled) widget is grayed out and stops accepting
+    ' input - real GTK4 also desensitizes (transitively) any child
+    ' widgets, unless one of them was explicitly re-sensitized itself.
+    ' GTK4 has no window-level "disabled" concept of its own - this is
+    ' the only enable/disable primitive that exists, at any level.
+    Declare Sub gtk_widget_set_sensitive(ByVal widget AS GObj PTR, ByVal sensitive AS INTEGER)
+    Declare Function gtk_widget_get_sensitive(ByVal widget AS GObj PTR) AS INTEGER
 End Extern

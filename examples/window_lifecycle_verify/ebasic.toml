@@ -1,0 +1,10 @@
+[package]
+name = "window_lifecycle_verify"
+version = "0.1.0"
+
+[bin]
+name = "window_lifecycle_verify"
+path = "src/main.bas"
+
+[dependencies]
+gtk4 = { path = "../.." }
