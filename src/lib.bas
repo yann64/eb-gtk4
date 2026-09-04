@@ -29,6 +29,8 @@
 #include once "raw/gtk_statusbar.bas"
 #include once "raw/gtk_timer.bas"
 #include once "raw/gtk_menu.bas"
+#include once "raw/gtk_check_button.bas"
+#include once "raw/gtk_combo_box_text.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -52,3 +54,5 @@
 #include once "timer.bas"
 #include once "menu.bas"
 #include once "toolbar.bas"
+#include once "check_button.bas"
+#include once "combo_box_text.bas"

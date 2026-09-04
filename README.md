@@ -513,6 +513,46 @@ a binding gap (see `eb-gui-gtk4`'s own README for how the universal
 `eb-gui` contract's `GuiGridSetColumnWeight`/`SetRowWeight` degrade to a
 documented no-op on this backend as a result).
 
+## CheckBox/RadioButton/ComboBox (v0.13.0)
+
+```basic
+DIM cb AS CheckButton
+cb = NewCheckButton("Enable feature")
+CALL CheckButtonSetActive(cb, 1)
+PRINT CheckButtonGetActive(cb)
+
+DIM r1 AS CheckButton
+r1 = NewCheckButton("Option A")
+DIM r2 AS CheckButton
+r2 = NewCheckButton("Option B")
+CALL CheckButtonSetGroup(r2, r1)   ' r1/r2 now mutually exclusive
+
+DIM combo AS ComboBoxText
+combo = NewComboBoxText()
+CALL ComboBoxTextAppendText(combo, "First")
+CALL ComboBoxTextAppendText(combo, "Second")
+CALL ComboBoxTextSetActive(combo, 0)
+DIM activeText AS ANY PTR
+activeText = ComboBoxTextGetActiveText(combo)
+' ... read via ZSTRING/STRING bridge, then:
+CALL FreeGMallocString(activeText)
+```
+
+Real GTK4 unifies checkbox and radio-button semantics into ONE widget
+class, `GtkCheckButton` - `GtkRadioButton` was removed upstream
+entirely. This package exposes a single `CheckButton` TYPE for both
+roles; `CheckButtonSetGroup` chains one to another for mutual
+exclusivity - real GTK4 has no separate group object at all, unlike
+Qt6's own `QButtonGroup`. `ComboBoxText` deliberately binds the
+deprecated-but-simple `GtkComboBoxText` (one string in, one string
+out, one `"changed"` signal) rather than the current, non-deprecated
+`GtkDropDown` (needs a `GListModel`/`GtkStringList`/`GtkStringObject`
+indirection layer and has no plain `"changed"` signal) - matching this
+package's own established preference for the simplest working API.
+`ComboBoxTextGetActiveText` returns a newly `g_malloc`'d string (unlike
+`CheckButtonGetLabel`'s borrowed one) - free it via the existing
+`FreeGMallocString` (`text.bas`).
+
 ## Layout
 
 - `src/raw/` - the raw FFI layer (see above).
