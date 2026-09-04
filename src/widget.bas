@@ -100,6 +100,29 @@ FUNCTION WidgetIsEnabled(w AS Widget) AS INTEGER
     WidgetIsEnabled = gtk_widget_get_sensitive(w.handle)
 END FUNCTION
 
+''' Whether this widget should grow to claim extra space along its
+''' parent Box/Grid's horizontal/vertical axis (GTK4 puts expand on the
+''' CHILD, not the container - see raw/gtk_widget.bas). Boolean only -
+''' real GTK4 has no fractional-ratio expand between multiple expanding
+''' siblings, unlike Qt6's stretch factor or Haiku's item weight.
+SUB WidgetSetHExpand(w AS Widget, expand AS INTEGER)
+    CALL gtk_widget_set_hexpand(w.handle, expand)
+END SUB
+
+SUB WidgetSetVExpand(w AS Widget, expand AS INTEGER)
+    CALL gtk_widget_set_vexpand(w.handle, expand)
+END SUB
+
+''' Alignment within this widget's own allocated space when it does NOT
+''' fill that space - GTK_ALIGN_FILL/START/END/CENTER (raw/gtk_widget.bas).
+SUB WidgetSetHAlign(w AS Widget, align AS INTEGER)
+    CALL gtk_widget_set_halign(w.handle, align)
+END SUB
+
+SUB WidgetSetVAlign(w AS Widget, align AS INTEGER)
+    CALL gtk_widget_set_valign(w.handle, align)
+END SUB
+
 ''' Wraps an existing, already-owned raw handle (e.g. the instance/data
 ''' pointer a signal handler receives) into a value of this package's
 ''' own Widget TYPE - does NOT take a new reference (unlike a New*

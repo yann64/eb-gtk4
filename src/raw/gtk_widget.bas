@@ -23,4 +23,18 @@ Extern "C" Lib "gtk-4"
     ' the only enable/disable primitive that exists, at any level.
     Declare Sub gtk_widget_set_sensitive(ByVal widget AS GObj PTR, ByVal sensitive AS INTEGER)
     Declare Function gtk_widget_get_sensitive(ByVal widget AS GObj PTR) AS INTEGER
+    ' Per-child layout constraints (GTK4 moved expand/fill from the old
+    ' Gtk3 gtk_box_pack_start(expand,fill) params onto the CHILD widget
+    ' itself - a Box/Grid parent just asks its own children whether they
+    ' want to grow). Real GtkAlign values (gtk/gtkenums.h, confirmed via
+    ' this host's own GTK4 headers): FILL=0, START=1, END=2, CENTER=3.
+    Declare Sub gtk_widget_set_hexpand(ByVal widget AS GObj PTR, ByVal expand AS INTEGER)
+    Declare Sub gtk_widget_set_vexpand(ByVal widget AS GObj PTR, ByVal expand AS INTEGER)
+    Declare Sub gtk_widget_set_halign(ByVal widget AS GObj PTR, ByVal align AS INTEGER)
+    Declare Sub gtk_widget_set_valign(ByVal widget AS GObj PTR, ByVal align AS INTEGER)
 End Extern
+
+Const GTK_ALIGN_FILL AS INTEGER = 0
+Const GTK_ALIGN_START AS INTEGER = 1
+Const GTK_ALIGN_END AS INTEGER = 2
+Const GTK_ALIGN_CENTER AS INTEGER = 3

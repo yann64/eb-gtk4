@@ -489,6 +489,30 @@ the non-variadic `g_object_set_property`. `gtk_widget_set_tooltip_text`
 needed none of this - it's one of the few style-adjacent properties GTK
 also exposes as a dedicated, ordinary function.
 
+## Per-child layout constraints (v0.12.0)
+
+```basic
+CALL WidgetSetHExpand(myButton, 1)   ' grow to fill extra horizontal space
+CALL WidgetSetVAlign(myLabel, GTK_ALIGN_CENTER)
+```
+
+GTK4 moved expand/fill from the old Gtk3 `gtk_box_pack_start(child,
+expand, fill, padding)` shape onto the CHILD widget itself -
+`WidgetSetHExpand`/`WidgetSetVExpand`/`WidgetSetHAlign`/`WidgetSetVAlign`
+(`src/raw/gtk_widget.bas`, `src/widget.bas`) work on any `Widget`-derived
+handle and take effect the next time that widget is placed in a `Box`/
+`Grid` - no separate "attach with constraints" call needed, unlike Qt6/
+Haiku's own layout-object-centric APIs. `GTK_ALIGN_FILL`/`START`/`END`/
+`CENTER` constants (confirmed against this system's real `gtkenums.h`
+values: `FILL=0, START=1, END=2, CENTER=3`) are plain integer `Const`s in
+`src/raw/gtk_widget.bas`. Expand is boolean only - real GTK4 has no
+fractional-ratio expand between multiple expanding siblings (unlike
+Qt6's stretch factor or Haiku's item weight); `GtkGrid` has no
+per-column/row weight concept at all, a real absence in GTK4 itself, not
+a binding gap (see `eb-gui-gtk4`'s own README for how the universal
+`eb-gui` contract's `GuiGridSetColumnWeight`/`SetRowWeight` degrade to a
+documented no-op on this backend as a result).
+
 ## Layout
 
 - `src/raw/` - the raw FFI layer (see above).
