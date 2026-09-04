@@ -21,6 +21,14 @@ SUB BoxAppend(box AS Box, child AS Widget)
     CALL gtk_box_append(box.handle, child.handle)
 END SUB
 
+''' Inserts a child widget at the start of the box, ahead of every
+''' existing child - used by WindowMenuBar/WindowToolBar (window.bas) to
+''' keep a window's chrome above its main content regardless of the
+''' order those are requested in.
+SUB BoxPrepend(box AS Box, child AS Widget)
+    CALL gtk_box_prepend(box.handle, child.handle)
+END SUB
+
 ''' Removes a child widget from the box (must already be one of its
 ''' direct children).
 SUB BoxRemove(box AS Box, child AS Widget)

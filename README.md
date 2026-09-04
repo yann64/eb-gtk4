@@ -20,7 +20,11 @@ persistent, configurable timer object, only a fire-and-forget
 `SetSingleShot` object model (matching a richer, already-established
 convention from a sibling package) needs a real trampoline, since
 eBasic itself has no way to call through an arbitrary stored function
-pointer. See "Building" below for the extra step this adds. Two layers:
+pointer, plus one small helper (`native/shim_menu.h`/`.cpp`) that
+builds a `"win.<name>"` detailed-action string for `Menu`/`Action`
+(real string concatenation - not expressible across the eBasic/C FFI
+boundary, not a callback bridge). See "Building" below for the extra
+step this adds. Two layers:
 
 - **Raw layer** (`src/raw/`) - flat `Extern "C" Lib "..."` declarations
   mirroring GLib/GObject/GIO and GTK4's core widgets 1:1. Internal use
@@ -211,6 +215,107 @@ Named `GtkTimer`, not `Timer` - eBasic's own stdlib already defines a
 top-level `Timer()` function (seconds elapsed) and identifiers are
 case-insensitive, so a bare `TYPE Timer` would collide with it.
 
+## Window content sharing: `WindowContentBox`
+
+A plain GTK4 window can only ever have **one** direct child - unlike
+Qt's `QMainWindow`, which has independent menu bar/tool bar/central
+widget/status bar slots. `WindowContentBox(w)` is the coordination
+point that lets a menu bar, a tool bar, your own main content, and a
+status bar all coexist in one window: the first time it's called for
+`w` (directly, or indirectly via `WindowMenuBar`/`WindowToolBar`), it
+creates a plain vertical `Box`, moves whatever was already `w`'s child
+into it, installs the box as `w`'s new (and from then on, only) child,
+and remembers it (`g_object_set_data`, directly on the window's own
+`GObject` - no extra eBasic-side bookkeeping) for every later call to
+return the same box.
+
+```basic
+DIM contentBox AS Box
+contentBox = WindowContentBox(win)
+CALL BoxAppend(contentBox, myLabel)   ' your own main content
+```
+
+Convention (not enforced): request `WindowMenuBar`/`WindowToolBar`
+first if you want both (they each `BoxPrepend` themselves, and
+`WindowToolBar` checks whether a menu bar already exists to land just
+below it rather than above) - then add your own content, then a status
+bar anytime (always `BoxAppend`-ed at the current end).
+
+## Menu
+
+```basic
+DIM bar AS MenuBar
+bar = WindowMenuBar(win)          ' auto-created, one per window
+DIM fileMenu AS Menu
+fileMenu = MenuBarAddMenu(bar, "File")
+
+DIM openAction AS Action
+openAction = NewAction(win, "open")   ' window-scoped - "win.open" internally
+
+SUB OnOpen(action AS GObj PTR, parameter AS ANY PTR, userData AS ANY PTR)
+    PRINT "opened"
+END SUB
+CALL ObjConnect(openAction, "activate", @OnOpen, 0)
+
+CALL MenuAddAction(fileMenu, openAction, "Open")
+CALL ActionSetEnabled(openAction, 1)
+```
+
+Real GTK4 removed `GtkMenuBar`/`GtkMenuItem` entirely - there is no
+direct equivalent to a Qt-style `QMenuBar`/`QMenu`/`QAction` shape.
+This package's own `Menu`/`Action`/`MenuBar` mirror that shape as
+closely as GTK4's real, modern architecture allows:
+
+- `Menu` wraps a plain `GMenu` (a `GMenuModel`/`GObject`, **not** a
+  `GtkWidget`) - unlike a real `QMenu`, a GTK4 submenu is never
+  independently visible; it only ever appears nested inside a
+  `MenuBar`'s own popover.
+- `Action` wraps a `GSimpleAction`, registered on a **window's** own
+  action map (v1 scope: window-scoped actions only, referenced
+  internally as `"win.<name>"` via a small native helper -
+  app-scoped `"app.<name>"` actions aren't exposed yet). A menu item
+  never carries a callback directly - it references an action by
+  name, and the action's own real `"activate"` signal (wired via the
+  already-generic `ObjConnect` - no new native code needed for this
+  part, `GSimpleAction` is an ordinary `GObject`) is what actually
+  fires.
+- `MenuBar` wraps the real `GtkPopoverMenuBar` widget, auto-created via
+  `WindowMenuBar` (see above) - never constructed directly.
+
+`ActionActivate(a)` activates an action programmatically, the same
+path a real menu-item click goes through - lets a connected
+`"activate"` handler be exercised/tested without needing a real click
+(the same role `WindowClose` plays for `"close-request"`).
+
+**Verified**: `examples/menu_toolbar` shows a `MenuBar` + `ToolBar` +
+main content + `StatusBar` all in one window, screenshot-confirmed
+live, correctly stacked top-to-bottom in that order regardless that
+the status bar was the last one requested (real interactive menu
+clicking hit the same well-documented `xdotool windowactivate`
+flakiness this project has seen throughout, so `examples/menu_verify`
+confirms the rest headlessly: `WindowContentBox`/`WindowMenuBar`/
+`WindowToolBar` each return the identical handle on repeated calls;
+`ActionActivate` genuinely reaches a connected `ObjConnect("activate",
+...)` handler, both before and after the same action is also
+referenced from a real menu item).
+
+## Toolbar
+
+```basic
+DIM t AS ToolBar
+t = WindowToolBar(win)   ' auto-created, one per window
+DIM btn AS Button
+btn = ToolBarAddButton(t, "Save")
+CALL ObjConnect(btn, "clicked", @OnSaveClicked, 0)
+```
+
+Real GTK4 removed `GtkToolbar` entirely - the modern replacement
+pattern upstream itself recommends is exactly this: a plain horizontal
+`Box` holding regular `Button`s. No new raw/native bindings needed at
+all. A tool bar button has no special connection to the `Action`/menu
+system in this package - wire it up with the usual `ObjConnect`, same
+as any other button.
+
 ## Syntax highlighting
 
 ```basic
@@ -378,8 +483,8 @@ also exposes as a dedicated, ordinary function.
 - `src/raw/` - the raw FFI layer (see above).
 - `src/*.bas` - the idiomatic layer (see above); `src/lib.bas` is the
   package's `#include` aggregator (its own `[lib]` entry point).
-- `native/` - this package's one small piece of native code
-  (`shim_timer.h`/`.cpp`, see "Status"/"Building" above) - not
+- `native/` - this package's small native shims (`shim_timer.h`/`.cpp`,
+  `shim_menu.h`/`.cpp`, see "Status"/"Building" above) - not
   `ebpm`/`ebc`-driven, built standalone the same way `eb-qt6`/
   `eb-haiku`'s own native shims are.
 - `tests/` - `ebpm test` suite; `tests/manual/` holds checks that need a

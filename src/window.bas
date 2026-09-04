@@ -2,6 +2,7 @@
 
 #include once "widget.bas"
 #include once "application.bas"
+#include once "box.bas"
 #include once "raw/gtk_window.bas"
 #include once "raw/gtk_application.bas"
 
@@ -87,6 +88,50 @@ END FUNCTION
 SUB WindowClose(w AS Window)
     CALL gtk_window_close(w.handle)
 END SUB
+
+''' Returns the window's own shared content box - a plain vertical Box,
+''' auto-created (moving any existing WindowSetChild content into it)
+''' the first time this is called for `w`, and reused on every later
+''' call. Real GTK4 windows can only ever have one direct child, unlike
+''' Qt's QMainWindow (which has independent menu bar/tool bar/central
+''' widget/status bar slots) - this box IS that one child from the
+''' first time any of WindowMenuBar (menu.bas), WindowToolBar
+''' (toolbar.bas), MainWindowStatusBar's own eb-gui-gtk4 adapter
+''' equivalent, or this function itself is used, so all of them can
+''' coexist in one window. Tracked via g_object_set_data/get_data
+''' directly on the window's own GObject - no eBasic-side lookup
+''' structure needed.
+'''
+''' Convention (not enforced, just documented): request WindowMenuBar/
+''' WindowToolBar first (they each prepend themselves, so requesting
+''' them in that order keeps the menu bar above the tool bar regardless
+''' of internal ordering details), THEN add your own main content via
+''' BoxAppend on this box, THEN request a status bar anytime (it's
+''' always appended at the current end).
+FUNCTION WindowContentBox(w AS Window) AS Box
+    DIM existing AS ANY PTR
+    existing = g_object_get_data(w.handle, "eb-gtk4-content-box")
+    IF existing <> 0 THEN
+        DIM existingBox AS Box
+        existingBox.handle = existing
+        WindowContentBox = existingBox
+        EXIT FUNCTION
+    END IF
+
+    DIM priorChild AS ANY PTR
+    priorChild = gtk_window_get_child(w.handle)
+
+    DIM contentBox AS Box
+    contentBox = NewBox(GTK_ORIENTATION_VERTICAL, 0)
+    IF priorChild <> 0 THEN
+        DIM priorWidget AS Widget
+        priorWidget.handle = priorChild
+        CALL BoxAppend(contentBox, priorWidget)
+    END IF
+    CALL WindowSetChild(w, contentBox)
+    CALL g_object_set_data(w.handle, "eb-gtk4-content-box", contentBox.handle)
+    WindowContentBox = contentBox
+END FUNCTION
 
 ''' Destroys a window (and, transitively, its children).
 SUB WindowDestroy(w AS Window)

@@ -28,6 +28,7 @@
 #include once "raw/gtk_eventkey.bas"
 #include once "raw/gtk_statusbar.bas"
 #include once "raw/gtk_timer.bas"
+#include once "raw/gtk_menu.bas"
 
 #include once "widget.bas"
 #include once "application.bas"
@@ -49,3 +50,5 @@
 #include once "eventkey.bas"
 #include once "statusbar.bas"
 #include once "timer.bas"
+#include once "menu.bas"
+#include once "toolbar.bas"

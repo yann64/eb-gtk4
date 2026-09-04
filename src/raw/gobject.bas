@@ -47,4 +47,13 @@ Extern "C" Lib "gobject-2.0"
     ' The non-variadic counterpart of g_object_set - sets exactly one
     ' property from a pre-built GValue.
     Declare Sub g_object_set_property(ByVal object_ AS GObj PTR, ByVal property_name AS ZSTRING, ByVal value AS ANY PTR)
+
+    ' Arbitrary per-object key/value storage - lets this package attach
+    ' its own bookkeeping (e.g. WindowContentBox's cached content-box
+    ' handle) directly to a real GObject instead of needing an eBasic-
+    ' side lookup structure of its own. `data` is 0 (never set) until
+    ' explicitly set - matches this package's own "0 means absent"
+    ' pointer convention throughout.
+    Declare Function g_object_get_data(ByVal object_ AS GObj PTR, ByVal key AS ZSTRING) AS ANY PTR
+    Declare Sub g_object_set_data(ByVal object_ AS GObj PTR, ByVal key AS ZSTRING, ByVal data_ AS ANY PTR)
 End Extern

@@ -1,0 +1,10 @@
+[package]
+name = "menu_verify"
+version = "0.1.0"
+
+[bin]
+name = "menu_verify"
+path = "src/main.bas"
+
+[dependencies]
+gtk4 = { path = "../.." }
